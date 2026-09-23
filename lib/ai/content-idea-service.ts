@@ -6,7 +6,7 @@ import type { AIMessage, SupportedLanguage, UUID } from '@/types';
 import { aiService } from './ai-service';
 import { businessBrainService } from './business-brain-service';
 import { contentStrategyService } from './content-strategy-service';
-import { detectLanguage } from './language';
+import { detectLanguage, resolveChatReplyLanguage } from './language';
 import { contentIdeaSystemPrompt } from './prompts';
 import { contentIdeaTurnSchema } from './schemas';
 
@@ -16,11 +16,10 @@ export interface ContentIdeaState {
   isMock: boolean;
 }
 
-const OPENING: Record<SupportedLanguage, string> = {
-  en: "Tell me about the posts you're thinking of — ideas, upcoming offers, anything customers ask about. I'll remember it all. Whenever you're ready, just tell me how many posts to create and over how many days.",
-  bn: 'আপনার মাথায় থাকা পোস্টের আইডিয়াগুলো বলুন — নতুন অফার, ক্যাম্পেইন, যা কিছু। আমি সব মনে রাখব। যখন প্রস্তুত হবেন, শুধু বলুন কয়দিনে কতগুলো পোস্ট বানাতে হবে।',
-  banglish: 'Apnar matha te thaka post er idea gulo bolun — notun offer, campaign, ja kichu. Ami shob mone rakhbo. Jokhon ready hoben, shudhu bolun koidin e kotogulo post banate hobe.',
-};
+/* This conversation always opens, and by default replies, in Bangla — see
+ * resolveChatReplyLanguage for the "unless the user asks for English" rule. */
+const OPENING_BN =
+  'আপনার মাথায় থাকা পোস্টের আইডিয়াগুলো বলুন — নতুন অফার, ক্যাম্পেইন, যা কিছু। আমি সব মনে রাখব। যখন প্রস্তুত হবেন, শুধু বলুন কয়দিনে কতগুলো পোস্ট বানাতে হবে।';
 
 export interface ContentIdeaTurnResult {
   reply: AIMessage;
@@ -35,7 +34,7 @@ export interface ContentIdeaTurnResult {
  * contentStrategyService.generateFromIdeas with everything said so far.
  */
 class ContentIdeaService {
-  async start(params: { workspaceId: UUID; userId: UUID; language?: SupportedLanguage }): Promise<ContentIdeaState> {
+  async start(params: { workspaceId: UUID; userId: UUID }): Promise<ContentIdeaState> {
     const store = await getStore();
     let conversation = await store.findConversation(params.workspaceId, 'create');
 
@@ -49,8 +48,8 @@ class ContentIdeaService {
       await store.addMessage({
         conversation_id: conversation.id,
         role: 'assistant',
-        content: OPENING[params.language ?? 'en'],
-        language: params.language ?? 'en',
+        content: OPENING_BN,
+        language: 'bn',
       });
     }
 
@@ -77,17 +76,24 @@ class ContentIdeaService {
     const history = await store.listMessages(params.conversationId);
     const brain = await businessBrainService.load(params.workspaceId);
 
+    /* Bangla by default, whatever language the user just wrote in — switches
+     * to English only if they explicitly asked for it, in this or an earlier
+     * message in the same conversation. */
+    const replyLanguage = resolveChatReplyLanguage(
+      history.filter((m) => m.role === 'user').map((m) => m.content),
+    );
+
     const { data, result } = await aiService.completeJSON(
       contentIdeaTurnSchema,
       {
-        system: contentIdeaSystemPrompt(detection, brain),
+        system: contentIdeaSystemPrompt(replyLanguage, brain),
         messages: history
           .filter((m) => m.role !== 'system')
           .slice(-24)
           .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         task: 'content_idea',
         maxTokens: 800,
-        context: { language: detection.language },
+        context: { language: replyLanguage },
       },
       { workspaceId: params.workspaceId, userId: params.userId },
     );
@@ -96,7 +102,7 @@ class ContentIdeaService {
       conversation_id: params.conversationId,
       role: 'assistant',
       content: data.reply,
-      language: detection.language,
+      language: replyLanguage,
     });
 
     const mode: 'chat' | 'generate' = data.mode === 'generate' ? 'generate' : 'chat';
@@ -117,7 +123,7 @@ class ContentIdeaService {
         postsPerDay: data.generate.posts_per_day,
         platforms: data.generate.platforms ?? undefined,
         ideaTranscript,
-        language: detection.language,
+        language: replyLanguage,
       });
       generated = { planId: plan.id, count: items.length };
     }

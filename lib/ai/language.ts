@@ -122,3 +122,29 @@ export function resolveContentLanguage(
 ): SupportedLanguage {
   return brandPreference ?? conversationLanguage;
 }
+
+const ENGLISH_REQUEST =
+  /\b(in english|english e (bolo|bolen|likho|likhen)|speak english|reply in english|english te bolo|answer in english)\b/i;
+const BANGLA_REQUEST =
+  /বাংলায়\s*(বলো|বলেন|লিখো|লিখেন)|\b(in bangla|bangla y bolo|banglay bolo|reply in bangla)\b/i;
+
+/** Did this one message explicitly ask for a reply language, overriding the default? */
+export function detectLanguageDirective(text: string): 'en' | 'bn' | null {
+  if (ENGLISH_REQUEST.test(text)) return 'en';
+  if (BANGLA_REQUEST.test(text)) return 'bn';
+  return null;
+}
+
+/**
+ * The content-ideas chat always replies in Bangla, no matter what language the
+ * user writes in — that is the product decision for this surface — unless the
+ * user has explicitly asked for English at some point in the conversation.
+ * The most recent explicit request wins.
+ */
+export function resolveChatReplyLanguage(userMessages: string[]): 'en' | 'bn' {
+  for (let i = userMessages.length - 1; i >= 0; i -= 1) {
+    const directive = detectLanguageDirective(userMessages[i]);
+    if (directive) return directive;
+  }
+  return 'bn';
+}

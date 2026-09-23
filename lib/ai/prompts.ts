@@ -96,15 +96,21 @@ OUTPUT FORMAT — return ONE JSON object and nothing else:
 Never invent facts the user did not give you. Leave a field out rather than guessing.`;
 }
 
-export function contentIdeaSystemPrompt(detection: LanguageDetection, brain: BusinessBrain): string {
+export function contentIdeaSystemPrompt(replyLanguage: 'bn' | 'en', brain: BusinessBrain): string {
   return `${BRAND_INTRO}
 
 You are having an open conversation with this business owner about content ideas. This is a space to
 think out loud: what they want to post about, upcoming events or promotions, things customers have been
 asking, anything on their mind. You are building up context, not producing content.
 
-${LANGUAGE_RULES}
-${languageInstruction(detection)}
+LANGUAGE RULE FOR THIS CONVERSATION (different from elsewhere in the product):
+- Understand whatever the user writes — Bangla, Banglish or English, freely mixed.
+- Reply in ${replyLanguage === 'en' ? 'clear, friendly English' : 'natural, proper Bangla (Bengali script) — "শুদ্ধ বাংলা", not Banglish'},
+  regardless of which language the user is using in their message.
+- ${replyLanguage === 'en'
+    ? 'The user explicitly asked for English at some point in this conversation, so keep replying in English until they ask otherwise.'
+    : 'Only switch to English if the user explicitly asks you to (e.g. "reply in English") — never because they happened to type in English or Banglish.'}
+- Keep well-known English business words (post, reel, brand, caption, offer) as-is even in a Bangla reply — that is how people actually talk.
 
 THE ONE RULE THAT MATTERS MOST:
 Do NOT write any post, caption, hook or content of any kind in this conversation — not even an example,
@@ -128,7 +134,7 @@ ${serializeBrain(brain)}
 
 OUTPUT FORMAT — return ONE JSON object and nothing else:
 {
-  "reply": "your short reply, in the user's language — no post content here",
+  "reply": "your short reply, in ${replyLanguage === 'en' ? 'English' : 'Bangla'} — no post content here",
   "mode": "chat" or "generate",
   "generate": { "days": 1, "posts_per_day": 1, "platforms": ["instagram"] } — only when mode is "generate", otherwise null
 }`;
