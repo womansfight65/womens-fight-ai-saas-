@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Plus Jakarta Sans', var(--font-sans);
+    --font-bangla: 'Hind Siliguri', 'Noto Sans Bengali', var(--font-sans);
+
+    --brand-1: 236 72 153;
+    --brand-2: 139 92 246;
+    --brand-3: 59 130 246;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-ink antialiased;
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    @apply text-ink;
+  }
+
+  /* Bangla text gets a font that actually renders the script well. */
+  [lang='bn'], .font-bangla {
+    font-family: var(--font-bangla);
+  }
+
+  ::selection {
+    background: rgba(139, 92, 246, 0.18);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-purple/60 ring-offset-2 ring-offset-white;
+  }
+
+  /* Respect users who prefer less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .wf-gradient-text {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+
+  .wf-card {
+    @apply rounded-3xl border border-line bg-white shadow-soft;
+  }
+
+  .wf-card-muted {
+    @apply rounded-3xl border border-line bg-surface-soft;
+  }
+
+  .wf-section {
+    @apply py-20 sm:py-24 lg:py-28;
+  }
+
+  .wf-eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium tracking-wide text-ink-muted;
+  }
+
+  .wf-hairline {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-line-strong to-transparent;
+  }
+
+  .wf-skeleton {
+    @apply relative overflow-hidden rounded-xl bg-surface-muted;
+  }
+
+  .wf-skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/70 to-transparent;
+  }
+
+  /* Thin, unobtrusive scrollbars inside app panels. */
+  .wf-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #DCD8E8 transparent;
+  }
+  .wf-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .wf-scroll::-webkit-scrollbar-thumb {
+    background-color: #DCD8E8;
+    border-radius: 9999px;
+  }
+  .wf-scroll::-webkit-scrollbar-track { background: transparent; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  .wf-mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 62%, transparent 100%);
+  }
+}
