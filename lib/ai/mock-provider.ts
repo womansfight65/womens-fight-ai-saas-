@@ -184,6 +184,32 @@ function parsePlatforms(text: string): PlatformId[] {
   return found;
 }
 
+const GENERATE_VERB = /\b(create|generate|make|build|write)\b|তৈরি|বানাও|বানিয়ে/i;
+
+/** Looks for an explicit "create N days, M posts a day" style instruction. */
+function parseGenerateCommand(text: string): { days: number; posts_per_day: number } | null {
+  if (!GENERATE_VERB.test(text)) return null;
+
+  const daysMatch = text.match(/(\d+)\s*(?:day|days|din|দিন)/i);
+  const perDayMatch = text.match(/(\d+)\s*(?:post|posts|পোস্ট)\s*(?:a|per|\/|every)?\s*day|day.*?(\d+)\s*(?:post|posts)/i);
+  const plainCountMatch = text.match(/(\d+)\s*(?:post|posts|পোস্ট)/i);
+
+  const days = daysMatch ? Math.min(Math.max(Number(daysMatch[1]), 1), 14) : null;
+  const perDay = perDayMatch ? Number(perDayMatch[1] ?? perDayMatch[2]) : null;
+
+  if (days && perDay) {
+    return { days, posts_per_day: Math.min(Math.max(perDay, 1), 6) };
+  }
+  if (days && plainCountMatch) {
+    const count = Number(plainCountMatch[1]);
+    return { days, posts_per_day: Math.min(Math.max(Math.round(count / days) || 1, 1), 6) };
+  }
+  if (!days && plainCountMatch) {
+    return { days: 1, posts_per_day: Math.min(Math.max(Number(plainCountMatch[1]), 1), 6) };
+  }
+  return null;
+}
+
 function splitList(text: string): string[] {
   return text
     .split(/[,،;\n]|\band\b|\bও\b|\bar\b/gi)
@@ -246,6 +272,10 @@ export class MockAIProvider implements AIProvider {
     switch (options.task) {
       case 'onboarding':
         return JSON.stringify(this.onboarding(options, lang));
+      case 'content_idea':
+        return JSON.stringify(this.contentIdea(options, lang));
+      case 'idea_plan':
+        return JSON.stringify(this.ideaPlan(options, lang));
       case 'plan':
         return JSON.stringify(this.plan(options, lang));
       case 'content':
@@ -361,6 +391,88 @@ export class MockAIProvider implements AIProvider {
     });
 
     return { strategy_summary: summary, days: items };
+  }
+
+  /* --- idea plan (from a content-ideas chat) ----------------------- */
+
+  private ideaPlan(options: AICompleteOptions, lang: Lang) {
+    const context = options.context ?? {};
+    const days = Number(context.days ?? 1);
+    const postsPerDay = Number(context.postsPerDay ?? 1);
+    const total = days * postsPerDay;
+    const business = String(context.businessName ?? 'your business');
+    const audience = String(context.audience ?? (lang === 'bn' ? 'আপনার ক্রেতারা' : 'your customers'));
+    const industry = String(context.industry ?? (lang === 'bn' ? 'আপনার খাত' : 'your industry'));
+    const productList = Array.isArray(context.products) ? (context.products as string[]) : [];
+    const platforms = (Array.isArray(context.platforms) && context.platforms.length
+      ? (context.platforms as PlatformId[])
+      : (['facebook', 'instagram'] as PlatformId[]));
+    const dayTimes = ['10:00', '13:00', '16:00', '18:30', '20:00', '21:30'];
+
+    const summary =
+      lang === 'bn'
+        ? `আপনার চ্যাটে বলা আইডিয়া থেকে ${total}টা পোস্ট তৈরি করা হয়েছে, ${days} দিনে ছড়িয়ে। ${DEV_NOTE[lang]}`
+        : lang === 'banglish'
+          ? `Apnar chat e bola idea theke ${total} ta post toiri kora hoyeche, ${days} din e chriye. ${DEV_NOTE[lang]}`
+          : `${total} posts built from what you shared in chat, spread across ${days} day(s). ${DEV_NOTE[lang]}`;
+
+    const items = Array.from({ length: total }, (_, index) => {
+      const dayNumber = (index % days) + 1;
+      const slot = Math.floor(index / days);
+      const objective = pick(OBJECTIVE_CYCLE, index);
+      const contentType = pick(TYPE_BY_OBJECTIVE[objective], index);
+      const platform = pick(platforms, index);
+      const product = productList.length ? pick(productList, index) : (lang === 'bn' ? 'আমাদের পণ্য' : 'our products');
+      const topic = fill(pick(TOPIC_TEMPLATES[lang], index), { business, audience, industry, product });
+      const hook = pick(HOOKS[lang], index);
+      return {
+        day: dayNumber,
+        topic,
+        content_type: contentType,
+        platform,
+        objective,
+        hook,
+        caption: captionFor(lang, { topic, hook, business, audience, product, objective }),
+        cta: pick(CTAS[lang], index),
+        hashtags: [`#${business.replace(/\s+/g, '')}`, `#${industry.replace(/\s+/g, '')}`, '#smallbusiness'].slice(
+          0,
+          PLATFORMS[platform].hashtagSweetSpot[1],
+        ),
+        image_concept: `${topic} — clean flat-lay of ${product} with soft daylight and brand colours.`,
+        video_concept:
+          contentType === 'reel' || contentType === 'short_video'
+            ? `Open on the hook in text, three quick shots of ${product}, close on the CTA.`
+            : null,
+        suggested_time: pick(dayTimes, slot),
+      };
+    });
+
+    return { strategy_summary: summary, days: items };
+  }
+
+  /* --- content-ideas chat ------------------------------------------ */
+
+  private contentIdea(options: AICompleteOptions, lang: Lang) {
+    const latest = options.messages[options.messages.length - 1]?.content ?? '';
+    const command = parseGenerateCommand(latest);
+
+    if (command) {
+      const ack =
+        lang === 'bn'
+          ? `ঠিক আছে — ${command.days} দিনে দিনে ${command.posts_per_day}টা করে, মোট ${command.days * command.posts_per_day}টা পোস্ট তৈরি করছি এখন। ${DEV_NOTE[lang]}`
+          : lang === 'banglish'
+            ? `Thik ache — ${command.days} din e ${command.posts_per_day} ta kore, total ${command.days * command.posts_per_day} ta post toiri korchi ekhon. ${DEV_NOTE[lang]}`
+            : `On it — creating ${command.days * command.posts_per_day} posts across ${command.days} day(s), ${command.posts_per_day} per day. ${DEV_NOTE[lang]}`;
+      return { reply: ack, mode: 'generate', generate: command };
+    }
+
+    const ackChat =
+      lang === 'bn'
+        ? `নোট করলাম। আরও কিছু বলতে চাইলে বলুন, নাহলে কতগুলো পোস্ট আর কয়দিনের জন্য চান জানান — তখনই তৈরি করা শুরু করব। ${DEV_NOTE[lang]}`
+        : lang === 'banglish'
+          ? `Note kore rakhlam. Aro kichu bolte chaile bolun, nahole koto ta post ar koidin er jonno chan janan — tokhoni toiri kora shuru korbo. ${DEV_NOTE[lang]}`
+          : `Noted. Keep sharing ideas, or tell me how many posts over how many days and I will start creating. ${DEV_NOTE[lang]}`;
+    return { reply: ackChat, mode: 'chat', generate: null };
   }
 
   /* --- single content --------------------------------------------- */

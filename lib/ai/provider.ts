@@ -1,4 +1,4 @@
-export type AITask = 'onboarding' | 'plan' | 'content' | 'adapt' | 'assistant';
+export type AITask = 'onboarding' | 'plan' | 'content' | 'adapt' | 'assistant' | 'content_idea' | 'idea_plan';
 
 export interface AIChatMessage {
   role: 'user' | 'assistant';

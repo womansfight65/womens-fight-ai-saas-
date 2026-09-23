@@ -26,6 +26,26 @@ export const objectiveEnum = z.enum([
 
 export const languageEnum = z.enum(['en', 'bn', 'banglish']);
 
+/**
+ * What the content-ideas assistant returns after every user turn. Most turns
+ * are just "chat" — the user is thinking out loud and the assistant is
+ * listening. Only when the user gives an explicit, unambiguous instruction to
+ * create posts now does the assistant switch to "generate" and fill in a spec.
+ */
+export const contentIdeaTurnSchema = z.object({
+  reply: z.string().min(1),
+  mode: z.enum(['chat', 'generate']).default('chat'),
+  generate: z
+    .object({
+      days: z.number().int().min(1).max(14),
+      posts_per_day: z.number().int().min(1).max(6),
+      platforms: z.array(platformEnum).nullish(),
+    })
+    .nullish(),
+});
+
+export type ContentIdeaTurn = z.infer<typeof contentIdeaTurnSchema>;
+
 /** What the onboarding assistant returns after every user turn. */
 export const onboardingTurnSchema = z.object({
   reply: z.string().min(1),
