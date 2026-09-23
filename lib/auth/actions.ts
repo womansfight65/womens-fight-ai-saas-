@@ -133,7 +133,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
   }
 
   revalidatePath('/', 'layout');
-  redirect('/onboarding');
+  redirect('/dashboard');
 }
 
 export async function signInAction(_prev: FormState, formData: FormData): Promise<FormState> {
