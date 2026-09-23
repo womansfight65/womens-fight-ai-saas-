@@ -83,35 +83,35 @@ export const FEATURES = [
 
 export const FAQS = [
   {
-    q: 'Do I have to write in English?',
-    a: 'No. Write in Bangla, in Banglish (Bengali typed with English letters), in English, or all three in one message. The assistant detects it and answers in the same style. You never pick a language from a menu.',
+    q: 'ইংরেজিতেই লিখতে হবে?',
+    a: 'না। বাংলা, বাংলিশ (ইংরেজি হরফে বাংলা), ইংরেজি — অথবা এক মেসেজেই তিনটা মিলিয়ে লিখুন। AI নিজে বুঝে নেয় এবং একই ধরনে উত্তর দেয়। ভাষা বেছে নেওয়ার কোনো মেনু নেই।',
   },
   {
-    q: 'Will it post to my social accounts automatically?',
-    a: 'Only after you approve a post, and only once you have connected that platform. Publishing integrations are a future phase, and until a platform is genuinely connected the app says "coming soon" rather than pretending.',
+    q: 'এটা কি নিজে থেকেই সোশ্যাল মিডিয়ায় পোস্ট করে দেবে?',
+    a: 'শুধু তখনই, যখন আপনি একটা পোস্ট অনুমোদন করবেন আর সেই প্ল্যাটফর্ম কানেক্ট করা থাকবে। Publishing ইন্টিগ্রেশন এখনো ধাপে ধাপে যোগ হচ্ছে — যে প্ল্যাটফর্ম সত্যিই কানেক্ট নেই, সেখানে অ্যাপ সরাসরি "শীঘ্রই আসছে" দেখায়, ভান করে না।',
   },
   {
-    q: 'Can I edit what the AI writes?',
-    a: 'Every field: topic, hook, caption, CTA, hashtags, date and time. You can also regenerate a single post without touching the rest of the plan. Editing approved content sends it back for review so you re-approve what you changed.',
+    q: 'AI যা লিখে দেয়, তা কি এডিট করা যায়?',
+    a: 'হ্যাঁ, প্রতিটা অংশ — টপিক, হুক, ক্যাপশন, CTA, হ্যাশট্যাগ, তারিখ ও সময়। পুরো প্ল্যান না ছুঁয়ে শুধু একটা পোস্টও আবার জেনারেট করতে পারেন। অনুমোদিত কনটেন্ট এডিট করলে সেটা আবার রিভিউতে ফিরে যায়, যাতে বদলানো অংশটাও আপনি আবার অনুমোদন করেন।',
   },
   {
-    q: 'Does it just repeat the same sales post 30 times?',
-    a: 'No. The strategy deliberately mixes awareness, education, engagement, trust, storytelling, community and conversion, and caps direct sales posts at roughly one in four.',
+    q: 'একই সেলস পোস্ট কি ৩০ বার রিপিট হয়?',
+    a: 'না। স্ট্র্যাটেজিতে ইচ্ছাকৃতভাবে awareness, education, engagement, trust, storytelling, community আর conversion মেশানো থাকে — সরাসরি সেলস পোস্ট থাকে মোটামুটি চারটার একটাতে।',
   },
   {
-    q: 'What happens if I close my browser?',
-    a: 'Nothing. Scheduled posts live in the database and are picked up by a server-side worker, so your laptop does not need to be on.',
+    q: 'ব্রাউজার বন্ধ করে দিলে কী হবে?',
+    a: 'কিছুই না। Scheduled পোস্ট ডাটাবেজে থাকে এবং সার্ভার-সাইড ওয়ার্কার সেগুলো নিয়ে কাজ করে — আপনার ল্যাপটপ চালু রাখার দরকার নেই।',
   },
   {
-    q: 'Do you generate images and videos?',
-    a: 'The architecture is in place and every post already carries an image concept and a video concept. Generation itself switches on when an image or video provider is configured — until then the app shows it as a future feature rather than a broken button.',
+    q: 'ছবি বা ভিডিও কি তৈরি করে দেয়?',
+    a: 'পুরো সিস্টেম এর জন্য তৈরি — প্রতিটা পোস্টের সাথেই একটা image concept আর video concept থাকে। যখন কোনো image/video provider কানেক্ট হবে, তখনই সেটা চালু হয়ে যাবে — এর আগে অ্যাপ সেটাকে "আসছে" হিসেবেই দেখায়, ভাঙা বাটন হিসেবে না।',
   },
   {
-    q: 'Is my business data private?',
-    a: 'Your Business Brain and content belong to your workspace and are isolated with Postgres row level security, so the database itself refuses cross-workspace reads. API keys stay server-side.',
+    q: 'আমার ব্যবসার তথ্য কি নিরাপদ?',
+    a: 'আপনার Business Brain ও কনটেন্ট শুধু আপনার workspace-এর — Postgres row level security দিয়ে আলাদা করা, তাই ডাটাবেজ নিজেই অন্য workspace-এর রিড আটকে দেয়। API key সবসময় সার্ভার-সাইডে থাকে।',
   },
   {
-    q: 'How does pricing work?',
-    a: 'A free tier covers one workspace and one plan a month. Pro and Business raise the limits. Payment processing is not connected in this build, and the app says so instead of showing a checkout that cannot complete.',
+    q: 'দাম কীভাবে কাজ করে?',
+    a: 'Free প্ল্যানে একটা workspace ও মাসে একটা প্ল্যান পাবেন। Pro আর Business-এ লিমিট বাড়ে। এই বিল্ডে পেমেন্ট এখনো কানেক্ট করা নেই — অ্যাপ সেটা স্পষ্ট করেই বলে, অসম্পূর্ণ checkout দেখায় না।',
   },
 ] as const;

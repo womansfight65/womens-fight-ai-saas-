@@ -57,7 +57,7 @@ export function Navbar() {
             Log in
           </ButtonLink>
           <ButtonLink href="/signup" size="sm">
-            Start free
+            Sign up
           </ButtonLink>
         </div>
 
@@ -90,7 +90,7 @@ export function Navbar() {
                 Log in
               </ButtonLink>
               <ButtonLink href="/signup" fullWidth>
-                Start free
+                Sign up
               </ButtonLink>
             </div>
           </div>

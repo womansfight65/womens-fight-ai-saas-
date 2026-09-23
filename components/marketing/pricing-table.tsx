@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils/cn';
 import { PLANS, yearlySavingPercent } from '@/lib/config/plans';
 import type { BillingInterval } from '@/types';
 
+const INTERVAL_LABEL: Record<BillingInterval, string> = { monthly: 'মাসিক', yearly: 'বাৎসরিক' };
+
 export function PricingTable({
   compact = false,
   paymentsConnected = false,
@@ -34,11 +36,11 @@ export function PricingTable({
               onClick={() => setInterval(option)}
               aria-pressed={interval === option}
               className={cn(
-                'rounded-full px-5 py-2 text-sm font-medium capitalize transition-all duration-200',
+                'rounded-full px-5 py-2 text-sm font-medium transition-all duration-200',
                 interval === option ? 'bg-white text-ink shadow-soft' : 'text-ink-muted hover:text-ink',
               )}
             >
-              {option}
+              {INTERVAL_LABEL[option]}
               {option === 'yearly' ? (
                 <span className="ml-2 text-xs font-semibold text-brand-purple">−17%</span>
               ) : null}
@@ -63,7 +65,7 @@ export function PricingTable({
             >
               {plan.highlighted ? (
                 <span className="absolute -top-3 left-7 rounded-full bg-brand-gradient px-3 py-1 text-2xs font-semibold uppercase tracking-wider text-white">
-                  Most popular
+                  সবচেয়ে জনপ্রিয়
                 </span>
               ) : null}
 
@@ -72,10 +74,10 @@ export function PricingTable({
 
               <p className="mt-6 flex items-baseline gap-1.5">
                 <span className="font-display text-4xl font-bold tracking-tight text-ink">${price}</span>
-                <span className="text-sm text-ink-muted">/{interval === 'monthly' ? 'month' : 'year'}</span>
+                <span className="text-sm text-ink-muted">/{interval === 'monthly' ? 'মাস' : 'বছর'}</span>
               </p>
               {interval === 'yearly' && saving > 0 ? (
-                <p className="mt-1 text-xs text-brand-purple">Saves {saving}% against monthly</p>
+                <p className="mt-1 text-xs text-brand-purple">মাসিকের তুলনায় {saving}% সাশ্রয়</p>
               ) : null}
 
               <ButtonLink
@@ -84,7 +86,7 @@ export function PricingTable({
                 className="mt-6"
                 fullWidth
               >
-                {plan.id === 'free' ? 'Start free' : `Choose ${plan.name}`}
+                {plan.id === 'free' ? 'ফ্রি শুরু করুন' : `${plan.name} বেছে নিন`}
               </ButtonLink>
 
               <ul className="mt-7 space-y-3 border-t border-line pt-6">
@@ -102,8 +104,8 @@ export function PricingTable({
 
       {!paymentsConnected ? (
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-ink-muted">
-          <Badge tone="warning">Payments not connected</Badge>
-          Plans and limits are live; checkout switches on when a payment provider is configured.
+          <Badge tone="warning">পেমেন্ট কানেক্ট করা নেই</Badge>
+          প্ল্যান ও লিমিট এখনই চালু আছে; payment provider কানেক্ট হলে checkout চালু হয়ে যাবে।
         </p>
       ) : null}
     </div>
