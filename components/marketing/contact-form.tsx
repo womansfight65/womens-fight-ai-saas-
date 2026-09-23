@@ -17,7 +17,7 @@ export function ContactForm() {
   const [message, setMessage] = useState('');
 
   const body = encodeURIComponent(`${message}\n\n— ${name || 'A visitor'} (${email || 'no email given'})`);
-  const subject = encodeURIComponent(`Woman's Fight AI enquiry from ${name || 'a visitor'}`);
+  const subject = encodeURIComponent(`WF Autopost AI enquiry from ${name || 'a visitor'}`);
   const mailto = `mailto:${site.supportEmail}?subject=${subject}&body=${body}`;
 
   return (

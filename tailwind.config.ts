@@ -15,7 +15,7 @@ const config: Config = {
     },
     extend: {
       colors: {
-        /* Woman's Fight brand ramp: pink -> purple -> blue */
+        /* WF Autopost brand ramp: pink -> purple -> blue */
         brand: {
           pink: '#EC4899',
           fuchsia: '#D946A6',

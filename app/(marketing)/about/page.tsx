@@ -5,7 +5,7 @@ import { SectionHeading } from '@/components/marketing/section-heading';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: "Why Woman's Fight AI exists and the principles it is built on.",
+  description: "Why WF Autopost AI exists and the principles it is built on.",
 };
 
 const PRINCIPLES = [
@@ -35,7 +35,7 @@ export default function AboutPage() {
           <SectionHeading
             eyebrow="About"
             title="Built for the person who is also the marketing department"
-            description="Woman's Fight AI started from a simple observation: small business owners do not lack ideas, they lack the hours to turn ideas into a consistent month of posts."
+            description="WF Autopost AI started from a simple observation: small business owners do not lack ideas, they lack the hours to turn ideas into a consistent month of posts."
           />
         </div>
       </section>

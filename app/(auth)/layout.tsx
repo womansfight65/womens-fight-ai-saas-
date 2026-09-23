@@ -26,9 +26,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative">
           <Link href="/" className="inline-flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-sm font-bold text-white">
-              W
+              WF
             </span>
-            <span className="font-display text-[15px] font-semibold text-white">Woman&apos;s Fight AI</span>
+            <span className="font-display text-[15px] font-semibold text-white">WF Autopost AI</span>
           </Link>
         </div>
 

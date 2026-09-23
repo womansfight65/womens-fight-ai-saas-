@@ -73,7 +73,7 @@ async function bootstrapUser(params: {
     workspaceId: workspace.id,
     userId: profile.id,
     kind: 'welcome',
-    title: "Welcome to Woman's Fight AI",
+    title: "Welcome to WF Autopost AI",
     body: 'Tell the assistant about your business and it will build your Business Brain.',
     href: '/onboarding',
   });

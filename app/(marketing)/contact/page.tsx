@@ -7,7 +7,7 @@ import { site } from '@/lib/config/site';
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: "Get in touch with the Woman's Fight AI team.",
+  description: "Get in touch with the WF Autopost AI team.",
 };
 
 export default function ContactPage() {

@@ -32,7 +32,7 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink-muted">
-              Tell Woman&apos;s Fight AI about your business once. Let AI plan, create, organise and
+              Tell WF Autopost AI about your business once. Let AI plan, create, organise and
               prepare your social media content for the entire month.
             </p>
 

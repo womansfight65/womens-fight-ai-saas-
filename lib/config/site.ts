@@ -1,9 +1,9 @@
 export const site = {
-  name: "Woman's Fight AI",
-  shortName: "Woman's Fight",
+  name: 'WF Autopost AI',
+  shortName: 'WF Autopost',
   tagline: 'AI does the work. You approve.',
   description:
-    "Tell Woman's Fight AI about your business once. Let AI plan, create, organize and prepare your social media content for the entire month.",
+    'Tell WF Autopost AI about your business once. Let AI plan, create, organize and prepare your social media content for the entire month.',
   supportEmail: 'hello@womansfight.ai',
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
 } as const;

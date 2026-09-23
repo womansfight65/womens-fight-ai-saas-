@@ -23,7 +23,7 @@ export default function FeaturesPage() {
         <div className="container">
           <SectionHeading
             eyebrow="Features"
-            title="What Woman's Fight AI actually does"
+            title="What WF Autopost AI actually does"
             description="One conversation about your business, then a month of content that holds together."
           />
         </div>

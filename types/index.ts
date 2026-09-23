@@ -1,5 +1,5 @@
 /**
- * Woman's Fight AI — shared domain types.
+ * WF Autopost AI — shared domain types.
  * These mirror the Postgres schema in `supabase/schema.sql`.
  */
 

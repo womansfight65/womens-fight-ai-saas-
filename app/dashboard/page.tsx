@@ -1,18 +1,11 @@
 import type { Metadata } from 'next';
-import {
-  CalendarClock,
-  CheckCircle2,
-  FileText,
-  Send,
-  Sparkles,
-  ArrowRight,
-} from 'lucide-react';
+import { ArrowRight, CalendarClock, CheckCircle2, FileText, Send, Sparkles } from 'lucide-react';
 
 import { PageHeader } from '@/components/dashboard/page-header';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { Badge, StatusBadge } from '@/components/ui/badge';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { StatusBadge } from '@/components/ui/badge';
+import { ButtonLink } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { EmptyState } from '@/components/ui/states';
 import { requireSession } from '@/lib/auth/guards';
@@ -52,48 +45,31 @@ export default async function DashboardPage() {
   ).length;
 
   const nextPost = upcoming[0] ?? null;
-  const recentItems = [...recent].reverse().slice(0, 5);
+  const recentItems = [...recent].reverse().slice(0, 4);
   const connected = connections.filter((c) => c.status === 'connected');
   const brainComplete = computeCompleteness(business);
   const firstName = session.user.full_name?.split(' ')[0];
 
-  /* Suggestions are derived from the workspace's real state, never invented. */
-  const suggestions: Array<{ text: string; href: string; cta: string }> = [];
-  if (!businessBrainService.isReady(business)) {
-    suggestions.push({
-      text: 'Your Business Brain is still thin. A few more answers make every generation sharper.',
-      href: '/onboarding',
-      cta: 'Continue onboarding',
-    });
-  }
-  if (!plan) {
-    suggestions.push({
-      text: 'You have no content plan yet. Build one and the month fills itself in.',
-      href: '/dashboard/planner',
-      cta: 'Create a plan',
-    });
-  }
-  if (stats.generated > 0) {
-    suggestions.push({
-      text: `${stats.generated} ${stats.generated === 1 ? 'post is' : 'posts are'} waiting for your review.`,
-      href: '/dashboard/library',
-      cta: 'Review them',
-    });
-  }
-  if (stats.approved > 0) {
-    suggestions.push({
-      text: `${stats.approved} approved ${stats.approved === 1 ? 'post is' : 'posts are'} not scheduled yet.`,
-      href: '/dashboard/calendar',
-      cta: 'Open calendar',
-    });
-  }
-  if (!connected.length) {
-    suggestions.push({
-      text: 'No social account is connected, so scheduled posts stay queued rather than publishing.',
-      href: '/dashboard/social',
-      cta: 'See platforms',
-    });
-  }
+  /* One next step at a time, derived from the workspace's real state — never invented. */
+  const nextStep = !businessBrainService.isReady(business)
+    ? { text: 'Finish telling the assistant about your business.', href: '/onboarding', cta: 'Continue' }
+    : !plan
+      ? { text: 'You have no content plan yet.', href: '/dashboard/planner', cta: 'Create a plan' }
+      : stats.generated > 0
+        ? {
+            text: `${stats.generated} ${stats.generated === 1 ? 'post is' : 'posts are'} waiting for your review.`,
+            href: '/dashboard/library',
+            cta: 'Review',
+          }
+        : stats.approved > 0
+          ? {
+              text: `${stats.approved} approved ${stats.approved === 1 ? 'post has' : 'posts have'} no date yet.`,
+              href: '/dashboard/calendar',
+              cta: 'Schedule',
+            }
+          : !connected.length
+            ? { text: 'No social account is connected yet.', href: '/dashboard/social', cta: 'Connect' }
+            : null;
 
   return (
     <>
@@ -107,6 +83,15 @@ export default async function DashboardPage() {
         }
       />
 
+      {nextStep ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-purple/20 bg-brand-purple/[0.04] px-5 py-3.5">
+          <p className="text-sm text-ink-soft">{nextStep.text}</p>
+          <ButtonLink href={nextStep.href} variant="ghost" size="sm" iconRight={<ArrowRight className="h-3.5 w-3.5" />}>
+            {nextStep.cta}
+          </ButtonLink>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Drafts" value={stats.draft + stats.generated} icon={<FileText className="h-4 w-4" />} hint="Waiting for review" />
         <StatCard label="Approved" value={stats.approved} icon={<CheckCircle2 className="h-4 w-4" />} hint="Ready to schedule" tone="brand" />
@@ -115,7 +100,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        {/* Next post */}
         <Card>
           <CardHeader
             title="Next up"
@@ -158,7 +142,6 @@ export default async function DashboardPage() {
           </CardBody>
         </Card>
 
-        {/* Plan progress */}
         <Card>
           <CardHeader title="This month" />
           <CardBody className="space-y-5">
@@ -185,63 +168,36 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        {/* Recent content */}
-        <Card>
-          <CardHeader
-            title="Recent content"
-            action={<ButtonLink href="/dashboard/library" variant="ghost" size="sm">Library</ButtonLink>}
-          />
-          <CardBody className="pt-2">
-            {recentItems.length ? (
-              <ul className="divide-y divide-line">
-                {recentItems.map((item) => (
-                  <li key={item.id} className="flex items-center gap-4 py-3.5">
-                    <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-2xs font-bold text-white"
-                      style={{ backgroundColor: PLATFORMS[item.platform].accent }}
-                      aria-hidden
-                    >
-                      {PLATFORMS[item.platform].name.slice(0, 1)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-ink">{item.topic}</p>
-                      <p className="text-xs text-ink-muted">{formatDate(item.scheduled_date, 'd MMM')}</p>
-                    </div>
-                    <StatusBadge status={item.status} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-8 text-center text-sm text-ink-muted">Nothing created yet.</p>
-            )}
-          </CardBody>
-        </Card>
-
-        {/* Suggestions */}
-        <Card>
-          <CardHeader title="Suggestions" description="Based on what is actually in your workspace." />
-          <CardBody className="space-y-3 pt-2">
-            {suggestions.length ? (
-              suggestions.slice(0, 4).map((suggestion) => (
-                <div key={suggestion.cta} className="rounded-2xl border border-line bg-surface-soft p-4">
-                  <p className="text-sm text-ink-soft">{suggestion.text}</p>
-                  <ButtonLink href={suggestion.href} variant="ghost" size="sm" className="mt-2 !px-0">
-                    {suggestion.cta} →
-                  </ButtonLink>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-line bg-surface-soft p-4">
-                <Badge tone="success">All clear</Badge>
-                <p className="mt-2 text-sm text-ink-soft">
-                  Nothing needs your attention right now.
-                </p>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-      </div>
+      <Card className="mt-6">
+        <CardHeader
+          title="Recent content"
+          action={<ButtonLink href="/dashboard/library" variant="ghost" size="sm">Library</ButtonLink>}
+        />
+        <CardBody className="pt-2">
+          {recentItems.length ? (
+            <ul className="divide-y divide-line">
+              {recentItems.map((item) => (
+                <li key={item.id} className="flex items-center gap-4 py-3.5">
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-2xs font-bold text-white"
+                    style={{ backgroundColor: PLATFORMS[item.platform].accent }}
+                    aria-hidden
+                  >
+                    {PLATFORMS[item.platform].name.slice(0, 1)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-ink">{item.topic}</p>
+                    <p className="text-xs text-ink-muted">{formatDate(item.scheduled_date, 'd MMM')}</p>
+                  </div>
+                  <StatusBadge status={item.status} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-8 text-center text-sm text-ink-muted">Nothing created yet.</p>
+          )}
+        </CardBody>
+      </Card>
     </>
   );
 }

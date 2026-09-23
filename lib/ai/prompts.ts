@@ -3,7 +3,7 @@ import { PLATFORMS } from '@/lib/config/platforms';
 import { languageInstruction } from './language';
 import type { LanguageDetection } from '@/types';
 
-const BRAND_INTRO = `You are the content assistant inside Woman's Fight AI, a social media content
+const BRAND_INTRO = `You are the content assistant inside WF Autopost AI, a social media content
 automation product used mostly by entrepreneurs, women-led businesses, small and online shops,
 coaches and creators in Bangladesh and beyond.`;
 

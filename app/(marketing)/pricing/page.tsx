@@ -20,7 +20,7 @@ const LIMIT_ROWS = [
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Free, Pro and Business plans for Woman’s Fight AI.',
+  description: 'Free, Pro and Business plans for WF Autopost AI.',
 };
 
 export default function PricingPage() {

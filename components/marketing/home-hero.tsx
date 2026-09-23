@@ -26,7 +26,7 @@ export function HomeHero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink-muted">
-            আপনার ব্যবসার কথা একবার বলুন — Woman&apos;s Fight AI পুরো মাসের সোশ্যাল মিডিয়া কনটেন্ট প্ল্যান,
+            আপনার ব্যবসার কথা একবার বলুন — WF Autopost AI পুরো মাসের সোশ্যাল মিডিয়া কনটেন্ট প্ল্যান,
             তৈরি ও গুছিয়ে রাখবে, আপনার রিভিউ ও অনুমোদনের জন্য।
           </p>
 
@@ -66,7 +66,7 @@ function HeroPreview() {
           <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-          <span className="ml-3 text-xs font-medium text-ink-muted">app.womansfight.ai/dashboard</span>
+          <span className="ml-3 text-xs font-medium text-ink-muted">app.wfautopost.ai/dashboard</span>
         </div>
 
         <div className="grid gap-px bg-line lg:grid-cols-[0.85fr_1.15fr]">
