@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUp, Sparkles } from 'lucide-react';
 
-import { AIMessageBubble } from '@/components/ai/ai-message';
+import { AIMessageBubble, AssistantAvatar } from '@/components/ai/ai-message';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ThinkingDots } from '@/components/ui/states';
@@ -143,7 +143,7 @@ export function OnboardingChat({
 
         {sending ? (
           <div className="flex gap-3">
-            <span className="mt-1 h-8 w-8 shrink-0 rounded-full bg-brand-gradient" aria-hidden />
+            <AssistantAvatar className="mt-1 h-8 w-8" />
             <div className="rounded-3xl rounded-bl-lg border border-line bg-white px-4 py-3 shadow-soft">
               <ThinkingDots label={thinkingLabel} />
             </div>

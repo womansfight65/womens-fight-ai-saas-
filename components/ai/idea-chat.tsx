@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { ArrowUp, Check, X } from 'lucide-react';
 
-import { AIMessageBubble } from '@/components/ai/ai-message';
+import { AIMessageBubble, AssistantAvatar } from '@/components/ai/ai-message';
 import { approveContentAction, deleteContentAction } from '@/app/dashboard/actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -136,7 +136,7 @@ export function IdeaChat({
   }
 
   return (
-    <div className="flex h-[calc(100vh-260px)] min-h-[480px] flex-col overflow-hidden rounded-4xl border border-line bg-surface-soft shadow-soft">
+    <div className="flex h-[calc(100vh-170px)] min-h-[560px] flex-col overflow-hidden rounded-4xl border border-line bg-surface-soft shadow-soft">
       <div className="border-b border-line bg-white px-5 py-3.5 sm:px-6">
         <p className="text-sm text-ink-muted">
           Share ideas freely — nothing gets created until you say so.
@@ -155,7 +155,7 @@ export function IdeaChat({
 
         {sending ? (
           <div className="flex gap-3">
-            <span className="mt-1 h-8 w-8 shrink-0 rounded-full bg-brand-gradient" aria-hidden />
+            <AssistantAvatar className="mt-1 h-8 w-8" />
             <div className="rounded-3xl rounded-bl-lg border border-line bg-white px-4 py-3 shadow-soft">
               <ThinkingDots label={thinkingLabel} />
             </div>
