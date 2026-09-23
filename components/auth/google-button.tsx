@@ -6,7 +6,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden>
       <path
         fill="#4285F4"
         d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.58-5.17 3.58-8.81Z"
