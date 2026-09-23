@@ -2,7 +2,7 @@ import 'server-only';
 
 import { getStore } from '@/lib/data';
 import { logger } from '@/lib/utils/logger';
-import type { AIMessage, SupportedLanguage, UUID } from '@/types';
+import type { AIMessage, ContentItem, SupportedLanguage, UUID } from '@/types';
 import { aiService } from './ai-service';
 import { businessBrainService } from './business-brain-service';
 import { contentStrategyService } from './content-strategy-service';
@@ -25,7 +25,7 @@ export interface ContentIdeaTurnResult {
   reply: AIMessage;
   mode: 'chat' | 'generate';
   isMock: boolean;
-  generated: { planId: UUID; count: number } | null;
+  generated: { planId: UUID; count: number; items: ContentItem[] } | null;
 }
 
 /**
@@ -106,7 +106,7 @@ class ContentIdeaService {
     });
 
     const mode: 'chat' | 'generate' = data.mode === 'generate' ? 'generate' : 'chat';
-    let generated: { planId: UUID; count: number } | null = null;
+    let generated: { planId: UUID; count: number; items: ContentItem[] } | null = null;
 
     if (mode === 'generate' && data.generate) {
       /* Everything said in this conversation, in order, is the context the
@@ -125,7 +125,7 @@ class ContentIdeaService {
         ideaTranscript,
         language: replyLanguage,
       });
-      generated = { planId: plan.id, count: items.length };
+      generated = { planId: plan.id, count: items.length, items };
     }
 
     await logger.info('content-idea', 'Content-idea turn processed', {
