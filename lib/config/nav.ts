@@ -23,13 +23,10 @@ export interface NavItem {
 
 export const dashboardNav: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'dashboard', description: 'Today at a glance' },
-  { label: 'Create with AI', href: '/dashboard/create', icon: 'sparkles', description: 'Ask for any post' },
-  { label: '30-Day Plan', href: '/dashboard/planner', icon: 'calendar-range', description: 'Your content strategy' },
-  { label: 'Calendar', href: '/dashboard/calendar', icon: 'calendar-days', description: 'Month view' },
-  { label: 'Library', href: '/dashboard/library', icon: 'library', description: 'Every piece of content' },
+  { label: 'AI Studio', href: '/dashboard/create', icon: 'sparkles', description: 'Ask for any post' },
+  { label: 'Content Planner', href: '/dashboard/planner', icon: 'calendar-range', description: 'Your content strategy' },
   { label: 'Social Accounts', href: '/dashboard/social', icon: 'share', description: 'Connect platforms' },
   { label: 'Analytics', href: '/dashboard/analytics', icon: 'chart', description: 'Performance' },
-  { label: 'Settings', href: '/dashboard/settings', icon: 'settings', description: 'Account and brand' },
 ];
 
 export const adminNav: NavItem[] = [
