@@ -28,25 +28,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <SidebarNav items={dashboardNav} />
           </div>
 
-          <div className="space-y-3 pt-4">
-            {session.user.role === 'admin' ? (
+          {session.user.role === 'admin' ? (
+            <div className="pt-4">
               <Link
                 href="/admin"
                 className="block rounded-2xl border border-line bg-white px-3.5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
               >
                 Admin panel
               </Link>
-            ) : null}
-            <div className="rounded-2xl bg-ink p-4">
-              <p className="text-sm font-semibold text-white">Need a post right now?</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/60">
-                Ask the assistant in one line and approve it.
-              </p>
-              <ButtonLink href="/dashboard/create" size="sm" className="mt-3" fullWidth>
-                Create with AI
-              </ButtonLink>
             </div>
-          </div>
+          ) : null}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
