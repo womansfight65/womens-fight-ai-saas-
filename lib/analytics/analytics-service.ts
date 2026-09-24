@@ -16,6 +16,12 @@ interface Totals {
   followerDelta: number;
 }
 
+export interface SeriesPoint {
+  date: string;
+  reach: number;
+  engagement: number;
+}
+
 export interface PlatformAnalytics {
   platform: PlatformId;
   name: string;
@@ -23,6 +29,7 @@ export interface PlatformAnalytics {
   displayName: string | null;
   hasData: boolean;
   totals: Totals;
+  series: SeriesPoint[];
 }
 
 export interface AnalyticsSummary {
@@ -32,6 +39,8 @@ export interface AnalyticsSummary {
   records: AnalyticsRecord[];
   /** One entry per connected account, even with zero data yet — never one per platform that isn't connected. */
   byPlatform: PlatformAnalytics[];
+  /** Reach and engagement per day, across every connected platform. */
+  series: SeriesPoint[];
   /** Only produced from real data — never invented. */
   insights: string[];
 }
@@ -65,12 +74,28 @@ function sumTotals(records: AnalyticsRecord[]): Totals {
   );
 }
 
+/** One point per calendar day that has at least one record, oldest first. */
+function buildSeries(records: AnalyticsRecord[]): SeriesPoint[] {
+  const byDate = new Map<string, { reach: number; engagement: number }>();
+  for (const r of records) {
+    const date = r.captured_at.slice(0, 10);
+    const current = byDate.get(date) ?? { reach: 0, engagement: 0 };
+    current.reach += r.reach;
+    current.engagement += r.likes + r.comments + r.shares + r.saves;
+    byDate.set(date, current);
+  }
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, v]) => ({ date, ...v }));
+}
+
 /**
  * Analytics only ever reports what a platform actually returned. With no
  * connected account there are no numbers, and the UI shows an empty state
  * rather than a demo chart. Each connected account gets its own honest
  * breakdown — including a "nothing yet" one, never a platform that isn't
- * actually connected.
+ * actually connected. The trend lines are built from the same rows, grouped
+ * by day — never a smoothed or invented curve.
  */
 class AnalyticsService {
   async summary(workspaceId: UUID): Promise<AnalyticsSummary> {
@@ -91,6 +116,7 @@ class AnalyticsService {
         displayName: connection.account?.display_name ?? null,
         hasData: platformRecords.length > 0,
         totals: platformRecords.length ? sumTotals(platformRecords) : { ...EMPTY_TOTALS },
+        series: buildSeries(platformRecords),
       };
     });
 
@@ -101,6 +127,7 @@ class AnalyticsService {
         totals: { ...EMPTY_TOTALS },
         records: [],
         byPlatform,
+        series: [],
         insights: [],
       };
     }
@@ -111,6 +138,7 @@ class AnalyticsService {
       totals: sumTotals(records),
       records,
       byPlatform,
+      series: buildSeries(records),
       insights: this.deriveInsights(records),
     };
   }
