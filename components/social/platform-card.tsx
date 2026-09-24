@@ -6,6 +6,7 @@ import { Link2, Unlink } from 'lucide-react';
 
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PlatformIcon } from '@/components/ui/platform-icon';
 import { useToast } from '@/components/ui/toast';
 import { connectSocialAction, disconnectSocialAction } from '@/app/dashboard/actions';
 import type { PlatformConnectionView } from '@/lib/social/social-service';
@@ -54,13 +55,7 @@ export function PlatformCard({ connection }: { connection: PlatformConnectionVie
     <div className="flex flex-col rounded-3xl border border-line bg-white p-6 shadow-soft">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white"
-            style={{ backgroundColor: connection.accent }}
-            aria-hidden
-          >
-            {connection.name.slice(0, 1)}
-          </span>
+          <PlatformIcon platform={connection.platform} className="h-10 w-10" />
           <div>
             <h3 className="text-base font-semibold text-ink">{connection.name}</h3>
             {connection.account?.display_name ? (
