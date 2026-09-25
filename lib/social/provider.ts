@@ -1,4 +1,4 @@
-import type { ContentItem, PlatformId, SocialConnectionStatus } from '@/types';
+import type { ContentItem, PlatformId, SocialAccount, SocialConnectionStatus } from '@/types';
 
 export interface PublishInput {
   item: ContentItem;
@@ -17,6 +17,10 @@ export interface OAuthStartResult {
   error?: string;
 }
 
+export type OAuthCallbackResult =
+  | { ok: true; account: Partial<SocialAccount> }
+  | { ok: false; error: string };
+
 /**
  * Every platform integration implements this. Nothing else in the product
  * knows how a specific network works, so adding a real Facebook or LinkedIn
@@ -30,8 +34,14 @@ export interface SocialProvider {
   readonly isConfigured: boolean;
   status(): SocialConnectionStatus;
   startOAuth(params: { workspaceId: string; redirectUri: string }): Promise<OAuthStartResult>;
+  /** Completes the OAuth dance for platforms that implement it — absent otherwise. */
+  handleOAuthCallback?(params: {
+    workspaceId: string;
+    code: string;
+    redirectUri: string;
+  }): Promise<OAuthCallbackResult>;
   publish(input: PublishInput): Promise<PublishResult>;
-  disconnect(accountId: string): Promise<{ ok: boolean; error?: string }>;
+  disconnect(account: SocialAccount): Promise<{ ok: boolean; error?: string }>;
 }
 
 /**

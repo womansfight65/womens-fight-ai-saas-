@@ -22,7 +22,7 @@ export const PLATFORMS: Record<PlatformId, PlatformMeta> = {
     hashtagSweetSpot: [2, 5],
     contentTypes: ['image_post', 'carousel', 'text_post', 'reel', 'live'],
     accent: '#1877F2',
-    integrationReady: false,
+    integrationReady: true,
   },
   instagram: {
     id: 'instagram',

@@ -24,6 +24,8 @@ import type { GeneratedContent } from '@/lib/ai/schemas';
 export interface ActionResult {
   ok: boolean;
   message?: string;
+  /** Present when the client must navigate the browser away, e.g. to an OAuth dialog. */
+  url?: string;
 }
 
 function revalidateContentViews() {
@@ -262,7 +264,7 @@ export async function connectSocialAction(platform: PlatformId): Promise<ActionR
   );
   revalidatePath('/dashboard/social');
   return result.ok
-    ? { ok: true, message: 'Redirecting…' }
+    ? { ok: true, message: 'Redirecting…', url: result.url }
     : { ok: false, message: result.error ?? 'Not available yet.' };
 }
 

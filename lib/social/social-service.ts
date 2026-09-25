@@ -24,14 +24,22 @@ export function getSocialProvider(platform: PlatformId): SocialProvider {
   return REGISTRY[platform];
 }
 
+/** What the client is allowed to see — access/refresh tokens never leave the server. */
+export type PublicSocialAccount = Omit<SocialAccount, 'access_token' | 'refresh_token' | 'token_expires_at'>;
+
 export interface PlatformConnectionView {
   platform: PlatformId;
   name: string;
   style: string;
   accent: string;
   status: SocialConnectionStatus;
-  account: SocialAccount | null;
+  account: PublicSocialAccount | null;
   isConfigured: boolean;
+}
+
+function toPublicAccount(account: SocialAccount): PublicSocialAccount {
+  const { access_token: _access_token, refresh_token: _refresh_token, token_expires_at: _token_expires_at, ...rest } = account;
+  return rest;
 }
 
 class SocialService {
@@ -49,7 +57,7 @@ class SocialService {
         accent: meta.accent,
         isConfigured: provider.isConfigured,
         status: account?.status ?? provider.status(),
-        account,
+        account: account ? toPublicAccount(account) : null,
       };
     });
   }
@@ -73,7 +81,7 @@ class SocialService {
     const store = await getStore();
     const accounts = await store.listSocialAccounts(workspaceId);
     const account = accounts.find((a) => a.platform === platform);
-    if (account) await REGISTRY[platform].disconnect(account.id);
+    if (account) await REGISTRY[platform].disconnect(account);
     return store.upsertSocialAccount(workspaceId, platform, {
       status: REGISTRY[platform].status(),
       external_account_id: null,

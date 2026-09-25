@@ -38,6 +38,10 @@ export function PlatformCard({ connection }: { connection: PlatformConnectionVie
   function connect() {
     startTransition(async () => {
       const result = await connectSocialAction(connection.platform);
+      if (result.ok && result.url) {
+        window.location.href = result.url;
+        return;
+      }
       toast.push(result.message ?? 'Not available yet.', result.ok ? 'success' : 'info');
       router.refresh();
     });

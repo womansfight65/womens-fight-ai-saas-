@@ -259,6 +259,10 @@ export interface SocialAccount {
   status: SocialConnectionStatus;
   connected_at: ISODate | null;
   created_at: ISODate;
+  /** Server-only. Never sent to the browser — read only by providers and background jobs. */
+  access_token?: string | null;
+  refresh_token?: string | null;
+  token_expires_at?: ISODate | null;
 }
 
 export type ScheduledPostStatus =

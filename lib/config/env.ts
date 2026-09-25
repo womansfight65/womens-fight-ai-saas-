@@ -20,7 +20,11 @@ export const env = {
   videoProviderKey: process.env.VIDEO_PROVIDER_API_KEY ?? '',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  facebookAppId: process.env.FACEBOOK_APP_ID ?? '',
+  facebookAppSecret: process.env.FACEBOOK_APP_SECRET ?? '',
 };
+
+const facebookConfigured = has(env.facebookAppId) && has(env.facebookAppSecret);
 
 export const integrations = {
   /** Supabase Auth + Postgres. When false the app runs on the local dev store. */
@@ -31,8 +35,9 @@ export const integrations = {
   imageGeneration: has(env.imageProviderKey),
   videoGeneration: has(env.videoProviderKey),
   billing: has(env.stripeSecretKey),
-  /** No social platform app credentials ship with this build. */
-  social: false,
+  facebook: facebookConfigured,
+  /** True once at least one social platform has real app credentials. */
+  social: facebookConfigured,
 };
 
 export type IntegrationKey = keyof typeof integrations;

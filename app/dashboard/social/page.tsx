@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react';
 
 import { PageHeader } from '@/components/dashboard/page-header';
 import { PlatformCard } from '@/components/social/platform-card';
+import { SocialCallbackToast } from '@/components/social/social-callback-toast';
 import { Card, CardBody } from '@/components/ui/card';
 import { requireSession } from '@/lib/auth/guards';
 import { socialService } from '@/lib/social/social-service';
@@ -15,6 +16,7 @@ export default async function SocialPage() {
 
   return (
     <>
+      <SocialCallbackToast />
       <PageHeader
         title="Social accounts"
         description="Connect the platforms you publish to. Until a platform is genuinely connected, this page says so."
