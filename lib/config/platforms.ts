@@ -32,7 +32,7 @@ export const PLATFORMS: Record<PlatformId, PlatformMeta> = {
     hashtagSweetSpot: [8, 15],
     contentTypes: ['image_post', 'carousel', 'reel', 'story'],
     accent: '#E1306C',
-    integrationReady: false,
+    integrationReady: true,
   },
   youtube: {
     id: 'youtube',
