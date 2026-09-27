@@ -85,7 +85,7 @@ class AIService {
    * it is parsed, schema-checked and only then handed back to the caller.
    */
   async completeJSON<T>(
-    schema: z.ZodType<T>,
+    schema: z.ZodType<T, z.ZodTypeDef, unknown>,
     options: AICompleteOptions,
     ctx: AICallContext,
   ): Promise<{ data: T; result: AIResult }> {

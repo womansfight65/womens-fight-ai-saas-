@@ -8,7 +8,7 @@ import { aiService } from './ai-service';
 import { businessBrainService, computeCompleteness } from './business-brain-service';
 import { detectLanguage } from './language';
 import { onboardingSystemPrompt } from './prompts';
-import { onboardingTurnSchema } from './schemas';
+import { onboardingTurnSchema, type OnboardingTurn } from './schemas';
 
 export interface OnboardingState {
   conversationId: UUID;
@@ -88,7 +88,7 @@ class OnboardingService {
     const history = await store.listMessages(params.conversationId);
     const brain = await businessBrainService.load(params.workspaceId);
 
-    const { data, result } = await aiService.completeJSON(
+    const { data, result } = await aiService.completeJSON<OnboardingTurn>(
       onboardingTurnSchema,
       {
         system: onboardingSystemPrompt(detection, brain),

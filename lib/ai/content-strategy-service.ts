@@ -10,7 +10,7 @@ import type { ContentItem, ContentPlan, PlatformId, SupportedLanguage, UUID } fr
 import { aiService } from './ai-service';
 import { businessBrainService } from './business-brain-service';
 import { ideaPlanSystemPrompt, planSystemPrompt } from './prompts';
-import { contentPlanSchema } from './schemas';
+import { contentPlanSchema, type GeneratedPlan } from './schemas';
 
 export interface GenerateFromIdeasInput {
   workspaceId: UUID;
@@ -73,7 +73,7 @@ class ContentStrategyService {
     });
 
     try {
-      const { data, result } = await aiService.completeJSON(
+      const { data, result } = await aiService.completeJSON<GeneratedPlan>(
         contentPlanSchema,
         {
           system: planSystemPrompt({ brain, days, startDate, language, platforms }),
@@ -195,7 +195,7 @@ class ContentStrategyService {
     });
 
     try {
-      const { data, result } = await aiService.completeJSON(
+      const { data, result } = await aiService.completeJSON<GeneratedPlan>(
         contentPlanSchema,
         {
           system: ideaPlanSystemPrompt({

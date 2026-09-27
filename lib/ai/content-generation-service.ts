@@ -35,7 +35,7 @@ class ContentGenerationService {
     const language =
       input.language ?? resolveContentLanguage(brain.brand?.preferred_language, detection.language);
 
-    const { data, result } = await aiService.completeJSON(
+    const { data, result } = await aiService.completeJSON<GeneratedContent>(
       generatedContentSchema,
       {
         system: contentSystemPrompt({ brain, detection, language }),
