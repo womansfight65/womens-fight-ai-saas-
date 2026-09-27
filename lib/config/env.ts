@@ -6,6 +6,8 @@
  * between a real feature, a development-mode notice, or a Coming Soon state.
  */
 
+import { safeSiteUrl } from '@/lib/utils/url';
+
 function has(value: string | undefined | null): boolean {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -19,7 +21,7 @@ export const env = {
   imageProviderKey: process.env.IMAGE_PROVIDER_API_KEY ?? '',
   videoProviderKey: process.env.VIDEO_PROVIDER_API_KEY ?? '',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  siteUrl: safeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'),
   facebookAppId: process.env.FACEBOOK_APP_ID ?? '',
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET ?? '',
   tiktokClientKey: process.env.TIKTOK_CLIENT_KEY ?? '',

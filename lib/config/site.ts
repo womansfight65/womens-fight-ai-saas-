@@ -1,3 +1,5 @@
+import { safeSiteUrl } from '@/lib/utils/url';
+
 export const site = {
   name: 'WF Autopost AI',
   shortName: 'WF Autopost',
@@ -5,7 +7,7 @@ export const site = {
   description:
     'Tell WF Autopost AI about your business once. Let AI plan, create, organize and prepare your social media content for the entire month.',
   supportEmail: 'hello@womansfight.ai',
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  url: safeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'),
 } as const;
 
 export const marketingNav = [

@@ -2,10 +2,14 @@ import type { Metadata, Viewport } from 'next';
 
 import { ToastProvider } from '@/components/ui/toast';
 import { site } from '@/lib/config/site';
+import { safeSiteUrl } from '@/lib/utils/url';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
+  // site.url is already validated, but metadataBase is what actually
+  // crashed a production build before — never let a bad env var reach
+  // `new URL(...)` unguarded here again.
+  metadataBase: new URL(safeSiteUrl(site.url, 'http://localhost:3000')),
   title: {
     default: `${site.name} — 30 days of content, planned by AI`,
     template: `%s · ${site.name}`,
