@@ -4,7 +4,6 @@ import { env } from '@/lib/config/env';
 import { PLATFORMS } from '@/lib/config/platforms';
 import { getStore } from '@/lib/data';
 import { getSocialProvider } from '@/lib/social/social-service';
-import { verifyOAuthState } from '@/lib/social/oauth-state';
 import type { PlatformId } from '@/types';
 
 /**
@@ -14,8 +13,8 @@ import type { PlatformId } from '@/types';
  * its platform. Until a provider is genuinely configured it refuses the
  * callback rather than writing a connection that does not exist. The browser
  * lands here straight from the platform's own site, so there is no session
- * cookie to trust — the workspace id travels in the signed `state` param
- * instead (see lib/social/oauth-state.ts).
+ * cookie to trust — each provider verifies the signed `state` param itself
+ * (see lib/social/oauth-state.ts) and hands back the workspace id it decoded.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ platform: string }> }) {
   const { platform } = await params;
@@ -51,18 +50,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ plat
   const code = requestUrl.searchParams.get('code');
   const state = requestUrl.searchParams.get('state');
   if (!code || !state) {
-    socialUrl.searchParams.set('social_error', 'The Facebook login did not complete. Please try again.');
-    return NextResponse.redirect(socialUrl);
-  }
-
-  const decoded = verifyOAuthState(state, process.env.FACEBOOK_APP_SECRET ?? '');
-  if (!decoded) {
-    socialUrl.searchParams.set('social_error', 'This login link expired. Please connect again.');
+    socialUrl.searchParams.set('social_error', `The ${provider.displayName} login did not complete. Please try again.`);
     return NextResponse.redirect(socialUrl);
   }
 
   const redirectUri = `${env.siteUrl}/api/social/callback/${platform}`;
-  const result = await provider.handleOAuthCallback({ workspaceId: decoded.workspaceId, code, redirectUri });
+  const result = await provider.handleOAuthCallback({ code, state, redirectUri });
 
   if (!result.ok) {
     socialUrl.searchParams.set('social_error', result.error);
@@ -70,7 +63,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ plat
   }
 
   const store = await getStore();
-  await store.upsertSocialAccount(decoded.workspaceId, platform as PlatformId, result.account);
+  await store.upsertSocialAccount(result.workspaceId, platform as PlatformId, result.account);
 
   socialUrl.searchParams.set('connected', platform);
   return NextResponse.redirect(socialUrl);

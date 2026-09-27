@@ -22,9 +22,12 @@ export const env = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
   facebookAppId: process.env.FACEBOOK_APP_ID ?? '',
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET ?? '',
+  tiktokClientKey: process.env.TIKTOK_CLIENT_KEY ?? '',
+  tiktokClientSecret: process.env.TIKTOK_CLIENT_SECRET ?? '',
 };
 
 const facebookConfigured = has(env.facebookAppId) && has(env.facebookAppSecret);
+const tiktokConfigured = has(env.tiktokClientKey) && has(env.tiktokClientSecret);
 
 export const integrations = {
   /** Supabase Auth + Postgres. When false the app runs on the local dev store. */
@@ -36,8 +39,9 @@ export const integrations = {
   videoGeneration: has(env.videoProviderKey),
   billing: has(env.stripeSecretKey),
   facebook: facebookConfigured,
+  tiktok: tiktokConfigured,
   /** True once at least one social platform has real app credentials. */
-  social: facebookConfigured,
+  social: facebookConfigured || tiktokConfigured,
 };
 
 export type IntegrationKey = keyof typeof integrations;

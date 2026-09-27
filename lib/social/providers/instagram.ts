@@ -4,7 +4,7 @@ import { env, integrations } from '@/lib/config/env';
 import { getAdminStore } from '@/lib/data';
 import type { PlatformId, SocialAccount, SocialConnectionStatus } from '@/types';
 import type { OAuthCallbackResult, OAuthStartResult, PublishInput, PublishResult, SocialProvider } from '../provider';
-import { signOAuthState } from '../oauth-state';
+import { signOAuthState, verifyOAuthState } from '../oauth-state';
 
 const GRAPH_VERSION = 'v21.0';
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
@@ -65,9 +65,14 @@ export class InstagramProvider implements SocialProvider {
     return { ok: true, url: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth?${params.toString()}` };
   }
 
-  async handleOAuthCallback({ code, redirectUri }: { workspaceId: string; code: string; redirectUri: string }): Promise<OAuthCallbackResult> {
+  async handleOAuthCallback({ code, state, redirectUri }: { code: string; state: string; redirectUri: string }): Promise<OAuthCallbackResult> {
     if (!this.isConfigured) {
       return { ok: false, error: 'Instagram is not connected in this build yet.' };
+    }
+
+    const decoded = verifyOAuthState(state, env.facebookAppSecret);
+    if (!decoded) {
+      return { ok: false, error: 'This login link expired. Please connect again.' };
     }
 
     try {
@@ -111,6 +116,7 @@ export class InstagramProvider implements SocialProvider {
 
       return {
         ok: true,
+        workspaceId: decoded.workspaceId,
         account: {
           external_account_id: pageWithInstagram.instagram_business_account.id,
           display_name: pageWithInstagram.instagram_business_account.username ?? pageWithInstagram.name,

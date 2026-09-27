@@ -18,7 +18,7 @@ export interface OAuthStartResult {
 }
 
 export type OAuthCallbackResult =
-  | { ok: true; account: Partial<SocialAccount> }
+  | { ok: true; workspaceId: string; account: Partial<SocialAccount> }
   | { ok: false; error: string };
 
 /**
@@ -34,12 +34,12 @@ export interface SocialProvider {
   readonly isConfigured: boolean;
   status(): SocialConnectionStatus;
   startOAuth(params: { workspaceId: string; redirectUri: string }): Promise<OAuthStartResult>;
-  /** Completes the OAuth dance for platforms that implement it — absent otherwise. */
-  handleOAuthCallback?(params: {
-    workspaceId: string;
-    code: string;
-    redirectUri: string;
-  }): Promise<OAuthCallbackResult>;
+  /**
+   * Completes the OAuth dance for platforms that implement it — absent
+   * otherwise. The provider verifies `state` itself (it alone knows which
+   * secret signed it) and hands back the workspace id it decoded.
+   */
+  handleOAuthCallback?(params: { code: string; state: string; redirectUri: string }): Promise<OAuthCallbackResult>;
   publish(input: PublishInput): Promise<PublishResult>;
   disconnect(account: SocialAccount): Promise<{ ok: boolean; error?: string }>;
 }

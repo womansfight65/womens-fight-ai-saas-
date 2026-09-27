@@ -52,7 +52,7 @@ export const PLATFORMS: Record<PlatformId, PlatformMeta> = {
     hashtagSweetSpot: [3, 6],
     contentTypes: ['short_video', 'reel'],
     accent: '#010101',
-    integrationReady: false,
+    integrationReady: true,
   },
   x: {
     id: 'x',

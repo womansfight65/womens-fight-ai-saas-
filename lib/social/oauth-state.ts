@@ -11,19 +11,29 @@ import { createHmac, timingSafeEqual } from 'crypto';
 
 const MAX_AGE_MS = 10 * 60 * 1000;
 
+/**
+ * The payload can carry extra fields a provider needs across the redirect —
+ * e.g. TikTok's PKCE code_verifier, which must survive the round trip to
+ * Meta/TikTok and back since nothing else here holds server-side session
+ * state between the two legs of the OAuth dance.
+ */
 interface StatePayload {
+  [key: string]: string | number;
   workspaceId: string;
   ts: number;
 }
 
-export function signOAuthState(payload: { workspaceId: string }, secret: string): string {
+export function signOAuthState(payload: Record<string, string> & { workspaceId: string }, secret: string): string {
   const json = JSON.stringify({ ...payload, ts: Date.now() } satisfies StatePayload);
   const encoded = Buffer.from(json, 'utf8').toString('base64url');
   const signature = createHmac('sha256', secret).update(encoded).digest('base64url');
   return `${encoded}.${signature}`;
 }
 
-export function verifyOAuthState(token: string, secret: string): { workspaceId: string } | null {
+export function verifyOAuthState<T extends string = never>(
+  token: string,
+  secret: string,
+): (Record<T, string> & { workspaceId: string }) | null {
   const [encoded, signature] = token.split('.');
   if (!encoded || !signature) return null;
 
@@ -36,7 +46,7 @@ export function verifyOAuthState(token: string, secret: string): { workspaceId: 
     const body = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as StatePayload;
     if (!body.workspaceId || typeof body.ts !== 'number') return null;
     if (Date.now() - body.ts > MAX_AGE_MS) return null;
-    return { workspaceId: body.workspaceId };
+    return body as Record<T, string> & { workspaceId: string };
   } catch {
     return null;
   }
