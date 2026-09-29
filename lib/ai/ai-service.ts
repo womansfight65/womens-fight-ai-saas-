@@ -8,14 +8,21 @@ import { logger } from '@/lib/utils/logger';
 import { extractJSON } from '@/lib/utils/text';
 import { usageService } from '@/lib/usage/usage-service';
 import { ClaudeProvider } from './claude-provider';
+import { OpenAIProvider } from './openai-provider';
 import { MockAIProvider } from './mock-provider';
 import { AIProviderError, type AICompleteOptions, type AIProvider, type AIResult } from './provider';
 
 let provider: AIProvider | null = null;
 
-/** Claude when a key is configured, the labelled development provider otherwise. */
+/** Claude when configured, OpenAI when that's what's configured instead, the labelled development provider otherwise. */
 export function getAIProvider(): AIProvider {
-  if (!provider) provider = integrations.claude ? new ClaudeProvider() : new MockAIProvider();
+  if (!provider) {
+    provider = integrations.claude
+      ? new ClaudeProvider()
+      : integrations.openai
+        ? new OpenAIProvider()
+        : new MockAIProvider();
+  }
   return provider;
 }
 

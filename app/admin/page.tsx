@@ -19,7 +19,7 @@ export default async function AdminOverviewPage() {
 
   const integrationRows = [
     { label: 'Supabase', on: integrations.supabase },
-    { label: 'Claude API', on: integrations.claude },
+    { label: 'AI provider (Claude/OpenAI)', on: integrations.ai },
     { label: 'Image provider', on: integrations.imageGeneration },
     { label: 'Video provider', on: integrations.videoGeneration },
     { label: 'Payments', on: integrations.billing },

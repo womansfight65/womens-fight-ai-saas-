@@ -10,7 +10,7 @@ import { integrations } from '@/lib/config/env';
 export function DevModeNotice({ className }: { className?: string }) {
   const missing: string[] = [];
   if (!integrations.supabase) missing.push('Supabase');
-  if (!integrations.claude) missing.push('Claude API');
+  if (!integrations.ai) missing.push('an AI provider (Claude or OpenAI)');
 
   if (!missing.length) return null;
 

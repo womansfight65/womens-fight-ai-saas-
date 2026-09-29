@@ -18,6 +18,8 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
   claudeApiKey: process.env.CLAUDE_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? '',
   claudeModel: process.env.CLAUDE_MODEL ?? 'claude-sonnet-4-5',
+  openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+  openaiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
   imageProviderKey: process.env.IMAGE_PROVIDER_API_KEY ?? '',
   videoProviderKey: process.env.VIDEO_PROVIDER_API_KEY ?? '',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
@@ -37,6 +39,11 @@ export const integrations = {
   supabaseAdmin: has(env.supabaseServiceRoleKey),
   /** Claude API. When false the app uses the clearly-labelled mock AI provider. */
   claude: has(env.claudeApiKey),
+  openai: has(env.openaiApiKey),
+  /** True once a real text-generation provider (Claude or OpenAI) is configured. */
+  get ai() {
+    return this.claude || this.openai;
+  },
   imageGeneration: has(env.imageProviderKey),
   videoGeneration: has(env.videoProviderKey),
   billing: has(env.stripeSecretKey),
@@ -49,10 +56,12 @@ export const integrations = {
 export type IntegrationKey = keyof typeof integrations;
 
 /** True when at least one core integration is missing. */
-export const isDevelopmentMode = !integrations.supabase || !integrations.claude;
+export const isDevelopmentMode = !integrations.supabase || !integrations.ai;
 
 export const PUBLIC_INTEGRATIONS = {
   claude: integrations.claude,
+  openai: integrations.openai,
+  ai: integrations.ai,
   supabase: integrations.supabase,
   imageGeneration: integrations.imageGeneration,
   videoGeneration: integrations.videoGeneration,
