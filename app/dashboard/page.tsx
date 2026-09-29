@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/ui/badge';
 import { ButtonLink } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { EmptyState } from '@/components/ui/states';
+import { PlatformIcon } from '@/components/ui/platform-icon';
 import { requireSession } from '@/lib/auth/guards';
 import { getStore } from '@/lib/data';
 import { businessBrainService, computeCompleteness } from '@/lib/ai/business-brain-service';
@@ -167,6 +168,53 @@ export default async function DashboardPage() {
           </CardBody>
         </Card>
       </div>
+
+      {connected.length ? (
+        <Card className="mt-6">
+          <CardHeader
+            title="Connected accounts"
+            action={<ButtonLink href="/dashboard/social" variant="ghost" size="sm">Manage</ButtonLink>}
+          />
+          <CardBody className="pt-2">
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {connected.map((connection) => (
+                <li
+                  key={connection.platform}
+                  className="flex items-center gap-3 rounded-2xl border border-line bg-surface-soft px-4 py-3"
+                >
+                  {connection.account?.avatar_url ? (
+                    <div className="relative h-9 w-9 shrink-0">
+                      {/* External CDN URL from the platform itself — not run through next/image's remote-pattern allowlist. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={connection.account.avatar_url}
+                        alt=""
+                        className="h-9 w-9 rounded-full border border-line object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white">
+                        <PlatformIcon platform={connection.platform} className="h-full w-full" />
+                      </span>
+                    </div>
+                  ) : (
+                    <PlatformIcon platform={connection.platform} className="h-9 w-9 shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-ink">
+                      {connection.account?.display_name ?? connection.name}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {connection.account?.follower_count !== null && connection.account?.follower_count !== undefined
+                        ? `${connection.account.follower_count.toLocaleString()} followers`
+                        : connection.name}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
 
       <Card className="mt-6">
         <CardHeader
