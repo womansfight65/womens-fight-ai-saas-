@@ -16,7 +16,6 @@ interface FacebookPage {
   name: string;
   access_token: string;
   followers_count?: number;
-  picture?: { data?: { url?: string } };
 }
 
 interface GraphErrorBody {
@@ -93,7 +92,7 @@ export class FacebookProvider implements SocialProvider {
 
       const pagesUrl = new URL(`${GRAPH_BASE}/me/accounts`);
       pagesUrl.searchParams.set('access_token', userToken);
-      pagesUrl.searchParams.set('fields', 'id,name,access_token,followers_count,picture{url}');
+      pagesUrl.searchParams.set('fields', 'id,name,access_token,followers_count');
       const pagesRes = await fetch(pagesUrl.toString());
       const pagesJson = (await pagesRes.json()) as GraphErrorBody & { data?: FacebookPage[] };
       if (!pagesRes.ok || !Array.isArray(pagesJson.data)) {
@@ -116,7 +115,9 @@ export class FacebookProvider implements SocialProvider {
           status: 'connected',
           connected_at: new Date().toISOString(),
           access_token: page.access_token,
-          avatar_url: page.picture?.data?.url ?? null,
+          // A stable, permanent link — not the signed, expiring CDN URL the
+          // `picture{url}` field would give us, which 404s once it expires.
+          avatar_url: `${GRAPH_BASE}/${page.id}/picture?type=normal&width=200&height=200`,
           follower_count: page.followers_count ?? null,
         },
       };
