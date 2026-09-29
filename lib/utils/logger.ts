@@ -31,8 +31,10 @@ async function write(
   const safe = safeMetadata(metadata);
   const workspaceId = typeof safe.workspaceId === 'string' ? safe.workspaceId : null;
   try {
-    const { getStore } = await import('@/lib/data');
-    const store = await getStore();
+    // Admin store so a write always succeeds regardless of the caller's RLS
+    // policy — logging must not depend on the requesting user's row access.
+    const { getAdminStore } = await import('@/lib/data');
+    const store = await getAdminStore();
     await store.addLog({ level, scope, message, workspace_id: workspaceId, metadata: safe });
   } catch {
     // Logging must never break a request.

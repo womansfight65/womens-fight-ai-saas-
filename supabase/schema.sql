@@ -590,8 +590,12 @@ create policy social_platforms_read on public.social_platforms for select using 
 drop policy if exists subscription_plans_read on public.subscription_plans;
 create policy subscription_plans_read on public.subscription_plans for select using (true);
 
--- Logs: admin-only through the API; the service role bypasses RLS for writes.
+-- Logs: admin-only reads through the API. Writes go through the service role
+-- (bypassing RLS) when it's configured; this insert policy is the fallback
+-- for when it is not, so logging itself never silently fails.
 drop policy if exists system_logs_admin on public.system_logs;
 create policy system_logs_admin on public.system_logs for select using (public.is_admin());
+drop policy if exists system_logs_insert on public.system_logs;
+create policy system_logs_insert on public.system_logs for insert with check (true);
 drop policy if exists admin_logs_admin on public.admin_logs;
 create policy admin_logs_admin on public.admin_logs for select using (public.is_admin());
