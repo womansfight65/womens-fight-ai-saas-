@@ -15,6 +15,8 @@ interface FacebookPage {
   id: string;
   name: string;
   access_token: string;
+  followers_count?: number;
+  picture?: { data?: { url?: string } };
 }
 
 interface GraphErrorBody {
@@ -91,7 +93,7 @@ export class FacebookProvider implements SocialProvider {
 
       const pagesUrl = new URL(`${GRAPH_BASE}/me/accounts`);
       pagesUrl.searchParams.set('access_token', userToken);
-      pagesUrl.searchParams.set('fields', 'id,name,access_token');
+      pagesUrl.searchParams.set('fields', 'id,name,access_token,followers_count,picture{url}');
       const pagesRes = await fetch(pagesUrl.toString());
       const pagesJson = (await pagesRes.json()) as GraphErrorBody & { data?: FacebookPage[] };
       if (!pagesRes.ok || !Array.isArray(pagesJson.data)) {
@@ -114,6 +116,8 @@ export class FacebookProvider implements SocialProvider {
           status: 'connected',
           connected_at: new Date().toISOString(),
           access_token: page.access_token,
+          avatar_url: page.picture?.data?.url ?? null,
+          follower_count: page.followers_count ?? null,
         },
       };
     } catch {

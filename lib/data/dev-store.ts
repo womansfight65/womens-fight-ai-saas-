@@ -536,6 +536,8 @@ export class DevStore implements DataStore {
       status: 'not_connected',
       connected_at: null,
       created_at: now(),
+      avatar_url: null,
+      follower_count: null,
       ...patch,
     };
     this.db().social_accounts.push(created);

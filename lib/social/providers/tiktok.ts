@@ -10,7 +10,7 @@ import { signOAuthState, verifyOAuthState } from '../oauth-state';
 
 const AUTH_BASE = 'https://www.tiktok.com/v2/auth/authorize/';
 const API_BASE = 'https://open.tiktokapis.com/v2';
-const SCOPES = ['user.info.basic', 'video.publish'];
+const SCOPES = ['user.info.basic', 'user.info.stats', 'video.publish'];
 
 interface TikTokErrorBody {
   error?: { code?: string; message?: string };
@@ -103,18 +103,20 @@ export class TikTokProvider implements SocialProvider {
         return { ok: false, error: tokenJson.error_description ?? 'TikTok rejected the login.' };
       }
 
-      const infoRes = await fetch(`${API_BASE}/user/info/?fields=display_name`, {
+      const infoRes = await fetch(`${API_BASE}/user/info/?fields=display_name,avatar_url,follower_count`, {
         headers: { Authorization: `Bearer ${tokenJson.access_token}` },
       });
-      const infoJson = (await infoRes.json()) as { data?: { user?: { display_name?: string } } };
-      const displayName = infoJson.data?.user?.display_name ?? null;
+      const infoJson = (await infoRes.json()) as {
+        data?: { user?: { display_name?: string; avatar_url?: string; follower_count?: number } };
+      };
+      const user = infoJson.data?.user;
 
       return {
         ok: true,
         workspaceId: decoded.workspaceId,
         account: {
           external_account_id: tokenJson.open_id,
-          display_name: displayName,
+          display_name: user?.display_name ?? null,
           status: 'connected',
           connected_at: new Date().toISOString(),
           access_token: tokenJson.access_token,
@@ -122,6 +124,8 @@ export class TikTokProvider implements SocialProvider {
           token_expires_at: tokenJson.expires_in
             ? new Date(Date.now() + tokenJson.expires_in * 1000).toISOString()
             : null,
+          avatar_url: user?.avatar_url ?? null,
+          follower_count: user?.follower_count ?? null,
         },
       };
     } catch {

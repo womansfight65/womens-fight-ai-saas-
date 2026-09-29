@@ -21,7 +21,12 @@ interface FacebookPage {
   id: string;
   name: string;
   access_token: string;
-  instagram_business_account?: { id: string; username?: string };
+  instagram_business_account?: {
+    id: string;
+    username?: string;
+    profile_picture_url?: string;
+    followers_count?: number;
+  };
 }
 
 interface GraphErrorBody {
@@ -98,7 +103,10 @@ export class InstagramProvider implements SocialProvider {
 
       const pagesUrl = new URL(`${GRAPH_BASE}/me/accounts`);
       pagesUrl.searchParams.set('access_token', userToken);
-      pagesUrl.searchParams.set('fields', 'id,name,access_token,instagram_business_account{id,username}');
+      pagesUrl.searchParams.set(
+        'fields',
+        'id,name,access_token,instagram_business_account{id,username,profile_picture_url,followers_count}',
+      );
       const pagesRes = await fetch(pagesUrl.toString());
       const pagesJson = (await pagesRes.json()) as GraphErrorBody & { data?: FacebookPage[] };
       if (!pagesRes.ok || !Array.isArray(pagesJson.data)) {
@@ -123,6 +131,8 @@ export class InstagramProvider implements SocialProvider {
           status: 'connected',
           connected_at: new Date().toISOString(),
           access_token: pageWithInstagram.access_token,
+          avatar_url: pageWithInstagram.instagram_business_account.profile_picture_url ?? null,
+          follower_count: pageWithInstagram.instagram_business_account.followers_count ?? null,
         },
       };
     } catch {

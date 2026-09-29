@@ -259,6 +259,9 @@ export interface SocialAccount {
   status: SocialConnectionStatus;
   connected_at: ISODate | null;
   created_at: ISODate;
+  /** Public profile info, read straight from the platform at connect time — safe to show in the UI. */
+  avatar_url: string | null;
+  follower_count: number | null;
   /** Server-only. Never sent to the browser — read only by providers and background jobs. */
   access_token?: string | null;
   refresh_token?: string | null;

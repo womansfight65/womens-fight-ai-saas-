@@ -245,6 +245,9 @@ create table if not exists public.social_accounts (
   external_account_id  text,
   display_name         text,
   status               social_status not null default 'not_connected',
+  -- Public profile info, read straight from the platform at connect time.
+  avatar_url           text,
+  follower_count       integer,
   -- Tokens are written only by the server (service role). RLS below denies all
   -- client access to this table's token columns by never exposing them.
   access_token         text,
@@ -254,6 +257,9 @@ create table if not exists public.social_accounts (
   created_at           timestamptz not null default now(),
   unique (workspace_id, platform)
 );
+-- Additive: run on an existing database that predates these columns.
+alter table public.social_accounts add column if not exists avatar_url text;
+alter table public.social_accounts add column if not exists follower_count integer;
 
 create table if not exists public.scheduled_posts (
   id                uuid primary key default gen_random_uuid(),
