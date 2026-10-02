@@ -6,49 +6,38 @@ import type { PlatformId, SocialAccount, SocialConnectionStatus } from '@/types'
 import type { OAuthCallbackResult, OAuthStartResult, PublishInput, PublishResult, SocialProvider } from '../provider';
 import { signOAuthState, verifyOAuthState } from '../oauth-state';
 
-const GRAPH_VERSION = 'v21.0';
-const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
+const AUTHORIZE_URL = 'https://api.instagram.com/oauth/authorize';
+const TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
+const GRAPH_BASE = 'https://graph.instagram.com';
 
-const SCOPES = [
-  'pages_show_list',
-  'pages_read_engagement',
-  'instagram_basic',
-  'instagram_content_publish',
-  'business_management',
-];
-
-interface FacebookPage {
-  id: string;
-  name: string;
-  access_token: string;
-  instagram_business_account?: {
-    id: string;
-    username?: string;
-    profile_picture_url?: string;
-    followers_count?: number;
-  };
-}
+const SCOPES = ['instagram_business_basic', 'instagram_business_content_publish'];
 
 interface GraphErrorBody {
+  error_message?: string;
   error?: { message?: string };
 }
 
+interface ProfileResponse {
+  id: string;
+  username?: string;
+  name?: string;
+  profile_picture_url?: string;
+  followers_count?: number;
+}
+
 /**
- * Instagram publishing via the Graph API.
- *
- * Instagram has no login of its own here — a Business/Creator Instagram
- * account must already be linked to a Facebook Page, and this reuses the
- * same Facebook app and OAuth dialog (with Instagram scopes added) to reach
- * it. The Page access token from that login is what calls the Instagram
- * Graph API too. Instagram never accepts a text-only post, so publish()
- * refuses without at least one media URL.
+ * Instagram publishing via "Instagram API with Instagram Login" — a
+ * dedicated Instagram app (its own App ID/Secret from the Meta Dashboard),
+ * not the Facebook app. The creator logs in with their own Instagram
+ * account directly; no Facebook Page has to be linked. All calls go to
+ * graph.instagram.com, which is a separate host from the Facebook Graph API.
  */
 export class InstagramProvider implements SocialProvider {
   readonly platform: PlatformId = 'instagram';
   readonly displayName = 'Instagram';
 
   get isConfigured(): boolean {
-    return integrations.facebook;
+    return integrations.instagram;
   }
 
   status(): SocialConnectionStatus {
@@ -59,15 +48,15 @@ export class InstagramProvider implements SocialProvider {
     if (!this.isConfigured) {
       return { ok: false, error: 'Instagram publishing is not connected in this build yet.' };
     }
-    const state = signOAuthState({ workspaceId }, env.facebookAppSecret);
+    const state = signOAuthState({ workspaceId }, env.instagramAppSecret);
     const params = new URLSearchParams({
-      client_id: env.facebookAppId,
+      client_id: env.instagramAppId,
       redirect_uri: redirectUri,
       state,
       response_type: 'code',
       scope: SCOPES.join(','),
     });
-    return { ok: true, url: `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth?${params.toString()}` };
+    return { ok: true, url: `${AUTHORIZE_URL}?${params.toString()}` };
   }
 
   async handleOAuthCallback({ code, state, redirectUri }: { code: string; state: string; redirectUri: string }): Promise<OAuthCallbackResult> {
@@ -75,68 +64,57 @@ export class InstagramProvider implements SocialProvider {
       return { ok: false, error: 'Instagram is not connected in this build yet.' };
     }
 
-    const decoded = verifyOAuthState(state, env.facebookAppSecret);
+    const decoded = verifyOAuthState(state, env.instagramAppSecret);
     if (!decoded) {
       return { ok: false, error: 'This login link expired. Please connect again.' };
     }
 
     try {
-      const shortTokenUrl = new URL(`${GRAPH_BASE}/oauth/access_token`);
-      shortTokenUrl.searchParams.set('client_id', env.facebookAppId);
-      shortTokenUrl.searchParams.set('client_secret', env.facebookAppSecret);
-      shortTokenUrl.searchParams.set('redirect_uri', redirectUri);
-      shortTokenUrl.searchParams.set('code', code);
-      const shortRes = await fetch(shortTokenUrl.toString());
-      const shortJson = (await shortRes.json()) as GraphErrorBody & { access_token?: string };
-      if (!shortRes.ok || !shortJson.access_token) {
-        return { ok: false, error: shortJson.error?.message ?? 'Facebook rejected the login.' };
+      const tokenBody = new URLSearchParams({
+        client_id: env.instagramAppId,
+        client_secret: env.instagramAppSecret,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+        code,
+      });
+      const tokenRes = await fetch(TOKEN_URL, { method: 'POST', body: tokenBody });
+      const tokenJson = (await tokenRes.json()) as GraphErrorBody & { access_token?: string; user_id?: string };
+      if (!tokenRes.ok || !tokenJson.access_token) {
+        return { ok: false, error: tokenJson.error_message ?? tokenJson.error?.message ?? 'Instagram rejected the login.' };
       }
 
-      const longTokenUrl = new URL(`${GRAPH_BASE}/oauth/access_token`);
-      longTokenUrl.searchParams.set('grant_type', 'fb_exchange_token');
-      longTokenUrl.searchParams.set('client_id', env.facebookAppId);
-      longTokenUrl.searchParams.set('client_secret', env.facebookAppSecret);
-      longTokenUrl.searchParams.set('fb_exchange_token', shortJson.access_token);
-      const longRes = await fetch(longTokenUrl.toString());
+      const exchangeUrl = new URL(`${GRAPH_BASE}/access_token`);
+      exchangeUrl.searchParams.set('grant_type', 'ig_exchange_token');
+      exchangeUrl.searchParams.set('client_secret', env.instagramAppSecret);
+      exchangeUrl.searchParams.set('access_token', tokenJson.access_token);
+      const longRes = await fetch(exchangeUrl.toString());
       const longJson = (await longRes.json()) as GraphErrorBody & { access_token?: string };
-      const userToken = longRes.ok && longJson.access_token ? longJson.access_token : shortJson.access_token;
+      const accessToken = longRes.ok && longJson.access_token ? longJson.access_token : tokenJson.access_token;
 
-      const pagesUrl = new URL(`${GRAPH_BASE}/me/accounts`);
-      pagesUrl.searchParams.set('access_token', userToken);
-      pagesUrl.searchParams.set(
-        'fields',
-        'id,name,access_token,instagram_business_account{id,username,profile_picture_url,followers_count}',
-      );
-      const pagesRes = await fetch(pagesUrl.toString());
-      const pagesJson = (await pagesRes.json()) as GraphErrorBody & { data?: FacebookPage[] };
-      if (!pagesRes.ok || !Array.isArray(pagesJson.data)) {
-        return { ok: false, error: pagesJson.error?.message ?? 'Could not read your Facebook Pages.' };
-      }
-
-      const pageWithInstagram = pagesJson.data.find((p) => p.instagram_business_account?.id);
-      if (!pageWithInstagram || !pageWithInstagram.instagram_business_account) {
-        return {
-          ok: false,
-          error:
-            'No Instagram Business or Creator account is linked to any of your Facebook Pages. Link one in the Instagram app first (Settings -> Account type -> switch to Professional, then connect it to your Page), then try again.',
-        };
+      const profileUrl = new URL(`${GRAPH_BASE}/me`);
+      profileUrl.searchParams.set('fields', 'id,username,name,profile_picture_url,followers_count');
+      profileUrl.searchParams.set('access_token', accessToken);
+      const profileRes = await fetch(profileUrl.toString());
+      const profileJson = (await profileRes.json()) as GraphErrorBody & ProfileResponse;
+      if (!profileRes.ok || !profileJson.id) {
+        return { ok: false, error: profileJson.error?.message ?? 'Could not read your Instagram profile.' };
       }
 
       return {
         ok: true,
         workspaceId: decoded.workspaceId,
         account: {
-          external_account_id: pageWithInstagram.instagram_business_account.id,
-          display_name: pageWithInstagram.instagram_business_account.username ?? pageWithInstagram.name,
+          external_account_id: profileJson.id,
+          display_name: profileJson.username ?? profileJson.name ?? 'Instagram account',
           status: 'connected',
           connected_at: new Date().toISOString(),
-          access_token: pageWithInstagram.access_token,
-          avatar_url: pageWithInstagram.instagram_business_account.profile_picture_url ?? null,
-          follower_count: pageWithInstagram.instagram_business_account.followers_count ?? null,
+          access_token: accessToken,
+          avatar_url: profileJson.profile_picture_url ?? null,
+          follower_count: profileJson.followers_count ?? null,
         },
       };
     } catch {
-      return { ok: false, error: 'Could not reach Facebook. Please try again.' };
+      return { ok: false, error: 'Could not reach Instagram. Please try again.' };
     }
   }
 

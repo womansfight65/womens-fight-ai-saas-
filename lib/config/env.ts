@@ -26,11 +26,14 @@ export const env = {
   siteUrl: safeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'),
   facebookAppId: process.env.FACEBOOK_APP_ID ?? '',
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET ?? '',
+  instagramAppId: process.env.INSTAGRAM_APP_ID ?? '',
+  instagramAppSecret: process.env.INSTAGRAM_APP_SECRET ?? '',
   tiktokClientKey: process.env.TIKTOK_CLIENT_KEY ?? '',
   tiktokClientSecret: process.env.TIKTOK_CLIENT_SECRET ?? '',
 };
 
 const facebookConfigured = has(env.facebookAppId) && has(env.facebookAppSecret);
+const instagramConfigured = has(env.instagramAppId) && has(env.instagramAppSecret);
 const tiktokConfigured = has(env.tiktokClientKey) && has(env.tiktokClientSecret);
 
 export const integrations = {
@@ -48,9 +51,10 @@ export const integrations = {
   videoGeneration: has(env.videoProviderKey),
   billing: has(env.stripeSecretKey),
   facebook: facebookConfigured,
+  instagram: instagramConfigured,
   tiktok: tiktokConfigured,
   /** True once at least one social platform has real app credentials. */
-  social: facebookConfigured || tiktokConfigured,
+  social: facebookConfigured || instagramConfigured || tiktokConfigured,
 };
 
 export type IntegrationKey = keyof typeof integrations;
