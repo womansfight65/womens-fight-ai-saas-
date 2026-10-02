@@ -31,8 +31,9 @@ export function Navbar() {
         scrolled ? 'border-line bg-white/85 backdrop-blur-xl' : 'border-transparent bg-white/60 backdrop-blur-sm',
       )}
     >
-      <nav className="container flex h-[72px] items-center justify-between gap-6" aria-label="Main">
-        <Logo />
+      <nav className="container flex h-[72px] items-center justify-between gap-2 sm:gap-6" aria-label="Main">
+        <Logo className="hidden sm:inline-flex" />
+        <Logo showWordmark={false} className="sm:hidden" />
 
         <div className="hidden items-center gap-1 lg:flex">
           {marketingNav.map((item) => {
@@ -61,16 +62,24 @@ export function Navbar() {
           </ButtonLink>
         </div>
 
-        <button
-          type="button"
-          className="rounded-full p-2 text-ink transition-colors hover:bg-surface-muted lg:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 lg:hidden">
+          <ButtonLink href="/login" variant="ghost" size="sm" className="whitespace-nowrap px-2.5 text-xs">
+            Log in
+          </ButtonLink>
+          <ButtonLink href="/signup" size="sm" className="whitespace-nowrap px-2.5 text-xs">
+            Sign up
+          </ButtonLink>
+          <button
+            type="button"
+            className="rounded-full p-2 text-ink transition-colors hover:bg-surface-muted"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </nav>
 
       {open ? (
@@ -85,14 +94,6 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
-            <div className="mt-2 flex flex-col gap-2">
-              <ButtonLink href="/login" variant="outline" fullWidth>
-                Log in
-              </ButtonLink>
-              <ButtonLink href="/signup" fullWidth>
-                Sign up
-              </ButtonLink>
-            </div>
           </div>
         </div>
       ) : null}
