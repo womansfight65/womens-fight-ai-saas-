@@ -10,7 +10,14 @@ import { signOAuthState, verifyOAuthState } from '../oauth-state';
 
 const AUTH_BASE = 'https://www.tiktok.com/v2/auth/authorize/';
 const API_BASE = 'https://open.tiktokapis.com/v2';
-const SCOPES = ['user.info.basic', 'user.info.stats', 'video.publish'];
+/**
+ * `video.publish` (Direct Post — publishes straight to the creator's
+ * profile) requires a separate TikTok audit beyond what an app gets by
+ * default, even in Sandbox. `video.upload` does not: it hands the video to
+ * the creator's TikTok inbox as a draft, and nothing posts until they
+ * finish it themselves inside the TikTok app — use that scope instead.
+ */
+const SCOPES = ['user.info.basic', 'user.info.stats', 'video.upload'];
 
 interface TikTokErrorBody {
   error?: { code?: string; message?: string };
@@ -183,43 +190,19 @@ export class TikTokProvider implements SocialProvider {
       return { ok: false, error: 'TikTok login expired. Please reconnect the account.', retryable: false };
     }
 
-    const caption = [item.hook, item.caption, item.hashtags.map((h) => `#${h}`).join(' ')]
-      .filter(Boolean)
-      .join('\n\n')
-      .slice(0, 2200);
-
     try {
-      // An unaudited app can only post as SELF_ONLY (private, visible to the
-      // connected account) or a similarly restricted option — never a public
-      // default it did not actually get from TikTok's own creator_info call.
-      const creatorRes = await fetch(`${API_BASE}/post/publish/creator_info/query/`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
-      });
-      const creatorJson = (await creatorRes.json()) as TikTokErrorBody & {
-        data?: { privacy_level_options?: string[] };
-      };
-      const privacyOptions = creatorJson.data?.privacy_level_options ?? [];
-      if (!creatorRes.ok || privacyOptions.length === 0) {
-        return {
-          ok: false,
-          error: creatorJson.error?.message ?? 'Could not read this TikTok account’s posting settings.',
-          retryable: true,
-        };
-      }
-      const privacyLevel = privacyOptions.includes('SELF_ONLY') ? 'SELF_ONLY' : privacyOptions[0];
-
-      const initRes = await fetch(`${API_BASE}/post/publish/video/init/`, {
+      /*
+       * `video.publish` (Direct Post — straight to the creator's profile,
+       * with a caption we control) needs a separate TikTok audit this app
+       * does not have. With only `video.upload`, the video can only be
+       * handed to the creator's TikTok inbox as a draft — no post_info,
+       * no privacy_level, no caption from us — and the creator finishes
+       * and posts it themselves inside the TikTok app.
+       */
+      const initRes = await fetch(`${API_BASE}/post/publish/inbox/video/init/`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify({
-          post_info: {
-            title: caption,
-            privacy_level: privacyLevel,
-            disable_duet: false,
-            disable_comment: false,
-            disable_stitch: false,
-          },
           source_info: { source: 'PULL_FROM_URL', video_url: mediaUrls[0] },
         }),
       });
