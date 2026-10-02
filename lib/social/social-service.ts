@@ -2,6 +2,7 @@ import 'server-only';
 
 import { getStore } from '@/lib/data';
 import { PLATFORM_LIST, PLATFORMS } from '@/lib/config/platforms';
+import { getPlan } from '@/lib/config/plans';
 import type { PlatformId, SocialAccount, SocialConnectionStatus, UUID } from '@/types';
 import type { SocialProvider } from './provider';
 import { FacebookProvider } from './providers/facebook';
@@ -67,7 +68,31 @@ class SocialService {
     return connections.filter((c) => c.status === 'connected').map((c) => c.platform);
   }
 
+  /**
+   * Each plan caps how many platforms a workspace may have connected at
+   * once (see `connected_platforms` in lib/config/plans.ts) — this is the
+   * one place that cap is actually enforced, gating the start of a new
+   * OAuth connection rather than something a page can route around.
+   * Reconnecting a platform that is already connected never counts as a
+   * new one.
+   */
   async startConnection(workspaceId: UUID, platform: PlatformId, redirectUri: string) {
+    const alreadyConnected = await this.connectedPlatforms(workspaceId);
+    if (!alreadyConnected.includes(platform)) {
+      const store = await getStore();
+      const subscription = await store.getSubscription(workspaceId);
+      const plan = getPlan(subscription?.plan_id ?? 'free');
+      if (alreadyConnected.length >= plan.limits.connected_platforms) {
+        return {
+          ok: false as const,
+          error:
+            plan.limits.connected_platforms <= 1
+              ? `Your ${plan.name} plan allows connecting 1 platform. Upgrade to connect more.`
+              : `Your ${plan.name} plan allows up to ${plan.limits.connected_platforms} connected platforms. Upgrade to connect more.`,
+        };
+      }
+    }
+
     const provider = REGISTRY[platform];
     const result = await provider.startOAuth({ workspaceId, redirectUri });
     if (!result.ok) {
